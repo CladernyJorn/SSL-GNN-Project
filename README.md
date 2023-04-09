@@ -11,25 +11,25 @@ The code base also supports using Saint Sampler for pretraining on a small subgr
 
   ( https://arxiv.org/abs/2205.10803 )
 
-  ![image-20230401154756308](.\README.assets\image-20230401154756308.png)
+  ![image-20230401154756308](https://github.com/CladernyJorn/SSL-GNN-Learning-Project/blob/main/README.assets/image-20230401154756308.png)
 
 - **Grace**: *Deep Graph Contrastive Representation Learning*
 
   ( https://arxiv.org/abs/2006.04131#)
 
-  ![image-20230409113629844](.\README.assets\image-20230409113629844.png)
+  ![image-20230409113629844](https://github.com/CladernyJorn/SSL-GNN-Learning-Project/blob/main/\README.assets\image-20230409113629844.png)
 
 - **BGRL**: *BOOTSTRAPPED REPRESENTATION LEARNING ON GRAPHS*
 
   ( https://openreview.net/forum?id=QrzVRAA49Ud )
 
-  ![model](.\README.assets\model.PNG)
+  ![model](https://github.com/CladernyJorn/SSL-GNN-Learning-Project/blob/main/\README.assets\model.PNG)
 
 - **CCA-SSG**: *From Canonical Correlation Analysis to Self-supervised Graph Neural Networks*
 
   ( https://proceedings.neurips.cc/paper/2021/hash/00ac8ed3b4327bdd4ebbebcb2ba10a00-Abstract.html )
 
-  ![image-20230409113744297](.\README.assets\image-20230409113744297.png)
+  ![image-20230409113744297](https://github.com/CladernyJorn/SSL-GNN-Learning-Project/blob/main/\README.assets\image-20230409113744297.png)
 
 ## Dependencies
 
