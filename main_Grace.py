@@ -5,10 +5,10 @@ from tqdm import tqdm
 import torch
 
 # self-made utils
-from utils.dataset_utils import load_dataset,load_dataloader
-from utils.train_evaluation_utils import node_classification_evaluation,create_optimizer
+from utils.dataset_utils import load_dataset, load_dataloader
+from utils.train_evaluation_utils import node_classification_evaluation, create_optimizer
 
-from dgl import DropEdge,FeatMask
+from dgl import DropEdge, FeatMask
 
 # graphMAE only
 from grace.utils import (
@@ -19,6 +19,7 @@ from grace.utils import (
 from grace.grace import Model
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
+
 
 def build_model(args):
     model = Model(
@@ -35,7 +36,8 @@ def build_model(args):
 
 
 def pretrain_whole_graph(model, graph, feat, optimizer, max_epoch, device, scheduler, num_classes, lr_f, weight_decay_f,
-             max_epoch_f, linear_prob,drop_edge_rate_1,drop_edge_rate_2,drop_feature_rate_1,drop_feature_rate_2):
+                         max_epoch_f, linear_prob, drop_edge_rate_1, drop_edge_rate_2, drop_feature_rate_1,
+                         drop_feature_rate_2):
     logging.info("start training..")
     graph = graph.to(device)
     x = feat.to(device)
@@ -45,7 +47,7 @@ def pretrain_whole_graph(model, graph, feat, optimizer, max_epoch, device, sched
     for epoch in epoch_iter:
         model.train()
         optimizer.zero_grad()
-        edge_mask1=DropEdge(p=drop_edge_rate_1)
+        edge_mask1 = DropEdge(p=drop_edge_rate_1)
         edge_mask2 = DropEdge(p=drop_edge_rate_2)
 
         # DGL.FeatMask will transform the origin graph as well
@@ -55,14 +57,14 @@ def pretrain_whole_graph(model, graph, feat, optimizer, max_epoch, device, sched
 
         graph_1 = edge_mask1(graph_1)
         graph_2 = edge_mask2(graph_2)
-        feature_mask1=FeatMask(p=drop_feature_rate_1,node_feat_names=['feat'])
+        feature_mask1 = FeatMask(p=drop_feature_rate_1, node_feat_names=['feat'])
         feature_mask2 = FeatMask(p=drop_feature_rate_2, node_feat_names=['feat'])
-        graph_1=feature_mask1(graph_1)
+        graph_1 = feature_mask1(graph_1)
         graph_2 = feature_mask2(graph_2)
         x_1 = graph_1.ndata['feat'].to(device)
         x_2 = graph_2.ndata['feat'].to(device)
-        z1 = model(graph_1,x_1)
-        z2 = model(graph_2,x_2)
+        z1 = model(graph_1, x_1)
+        z2 = model(graph_2, x_2)
 
         loss = model.loss(z1, z2)
         loss.backward()
@@ -79,20 +81,23 @@ def pretrain_whole_graph(model, graph, feat, optimizer, max_epoch, device, sched
     # return best_model
     return model
 
-def pretrain_batch_sampler(model, graph,pretrain_dataloader, feat, optimizer, max_epoch, device, scheduler, num_classes, lr_f, weight_decay_f,
-             max_epoch_f, linear_prob,drop_edge_rate_1,drop_edge_rate_2,drop_feature_rate_1,drop_feature_rate_2):
+
+def pretrain_batch_sampler(model, graph, pretrain_dataloader, feat, optimizer, max_epoch, device, scheduler,
+                           num_classes, lr_f, weight_decay_f,
+                           max_epoch_f, linear_prob, drop_edge_rate_1, drop_edge_rate_2, drop_feature_rate_1,
+                           drop_feature_rate_2):
     logging.info("start training..")
     # graph = graph.to(device)
     # x = feat.to(device)
 
     epoch_iter = tqdm(pretrain_dataloader)
 
-    for i,subgraph in enumerate(epoch_iter):
+    for i, subgraph in enumerate(epoch_iter):
         subgraph = subgraph.to(device)
         # x = subgraph.ndata['feat'].to(device)
         model.train()
         optimizer.zero_grad()
-        edge_mask1=DropEdge(p=drop_edge_rate_1)
+        edge_mask1 = DropEdge(p=drop_edge_rate_1)
         edge_mask2 = DropEdge(p=drop_edge_rate_2)
 
         # DGL.FeatMask will transform the origin graph as well
@@ -102,14 +107,14 @@ def pretrain_batch_sampler(model, graph,pretrain_dataloader, feat, optimizer, ma
 
         graph_1 = edge_mask1(graph_1)
         graph_2 = edge_mask2(graph_2)
-        feature_mask1=FeatMask(p=drop_feature_rate_1,node_feat_names=['feat'])
+        feature_mask1 = FeatMask(p=drop_feature_rate_1, node_feat_names=['feat'])
         feature_mask2 = FeatMask(p=drop_feature_rate_2, node_feat_names=['feat'])
-        graph_1=feature_mask1(graph_1)
+        graph_1 = feature_mask1(graph_1)
         graph_2 = feature_mask2(graph_2)
         x_1 = graph_1.ndata['feat'].to(device)
         x_2 = graph_2.ndata['feat'].to(device)
-        z1 = model(graph_1,x_1)
-        z2 = model(graph_2,x_2)
+        z1 = model(graph_1, x_1)
+        z2 = model(graph_2, x_2)
 
         loss = model.loss(z1, z2)
         loss.backward()
@@ -140,26 +145,24 @@ def train_eval_whole_graph(args):
     weight_decay_f = args.weight_decay_f
     max_epoch_f = args.max_epoch_f
     linear_prob = args.linear_prob
-    load_model=args.load_model
-    save_model=args.save_model
+    load_model = args.load_model
+    save_model = args.save_model
     use_scheduler = args.scheduler
     drop_edge_rate_1 = args.drop_edge_rate_1
     drop_edge_rate_2 = args.drop_edge_rate_2
     drop_feature_rate_1 = args.drop_feature_rate_1
     drop_feature_rate_2 = args.drop_feature_rate_2
 
-
     graph, (num_features, num_classes) = load_dataset(dataset_name)
     args.num_features = num_features
 
     acc_list = []
     estp_acc_list = []
-    if isinstance(seeds,int):
-        seeds=[seeds]
+    if isinstance(seeds, int):
+        seeds = [seeds]
     for i, seed in enumerate(seeds):
         print(f"####### Run {i} for seed {seed}")
         set_random_seed(seed)
-
 
         model = build_model(args)
         model.to(device)
@@ -180,9 +183,9 @@ def train_eval_whole_graph(args):
                 model, graph, x, optimizer, max_epoch, device, scheduler, num_classes, lr_f,
                 weight_decay_f, max_epoch_f, linear_prob,
                 drop_edge_rate_1=drop_edge_rate_1,
-                drop_edge_rate_2 = drop_edge_rate_2,
-                drop_feature_rate_1 = drop_feature_rate_1,
-                drop_feature_rate_2 = drop_feature_rate_2
+                drop_edge_rate_2=drop_edge_rate_2,
+                drop_feature_rate_1=drop_feature_rate_1,
+                drop_feature_rate_2=drop_feature_rate_2
             )
             model = model.cpu()
 
@@ -201,12 +204,13 @@ def train_eval_whole_graph(args):
         acc_list.append(final_acc)
         estp_acc_list.append(estp_acc)
 
-
     final_acc, final_acc_std = np.mean(acc_list), np.std(acc_list)
     estp_acc, estp_acc_std = np.mean(estp_acc_list), np.std(estp_acc_list)
     print(f"# final_acc: {final_acc:.4f}±{final_acc_std:.4f}")
     print(f"# early-stopping_acc: {estp_acc:.4f}±{estp_acc_std:.4f}")
     return final_acc
+
+
 def train_eval_batch_sampler(args):
     device = args.device if args.device >= 0 else "cpu"
     seeds = args.seeds
@@ -260,7 +264,7 @@ def train_eval_batch_sampler(args):
         x = graph.ndata["feat"]
         if not load_model:
             model = pretrain_batch_sampler(
-                model, graph, pretrain_dataloader,x, optimizer, max_epoch, device, scheduler, num_classes, lr_f,
+                model, graph, pretrain_dataloader, x, optimizer, max_epoch, device, scheduler, num_classes, lr_f,
                 weight_decay_f, max_epoch_f, linear_prob,
                 drop_edge_rate_1=drop_edge_rate_1,
                 drop_edge_rate_2=drop_edge_rate_2,
@@ -289,6 +293,7 @@ def train_eval_batch_sampler(args):
     print(f"# final_acc: {final_acc:.4f}±{final_acc_std:.4f}")
     print(f"# early-stopping_acc: {estp_acc:.4f}±{estp_acc_std:.4f}")
     return final_acc
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == "__main__":

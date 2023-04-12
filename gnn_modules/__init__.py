@@ -16,7 +16,7 @@ except:
 
 
 def setup_module(m_type, enc_dec, in_dim, num_hidden, out_dim, num_layers, dropout=0.2, activation='relu', residual=False, norm=None, nhead=4,
-                 nhead_out=1, attn_drop=0.1, negative_slope=0.2, concat_out=True,allow_zero_degree=False) -> nn.Module:
+                 nhead_out=1, attn_drop=0.1, negative_slope=0.2, concat_out=True,allow_zero_degree=True) -> nn.Module:
     if m_type == "gat":
         mod = GAT(
             in_dim=in_dim,

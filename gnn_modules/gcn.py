@@ -48,15 +48,6 @@ class GCN(nn.Module):
             self.gcn_layers.append(GraphConv(
                 num_hidden, out_dim, residual=last_residual, activation=last_activation, norm=last_norm))
 
-        # if norm is not None:
-        #     self.norms = nn.ModuleList([
-        #         norm(num_hidden)
-        #         for _ in range(num_layers - 1)
-        #     ])
-        #     if not encoding:
-        #         self.norms.append(norm(out_dim))
-        # else:
-        #     self.norms = None
         self.norms = None
         self.head = nn.Identity()
 

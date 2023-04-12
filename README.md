@@ -1,9 +1,24 @@
 # SSL-GNN-Learning-Project
 A coding project that integrates 4 recent SSL methods applied in GNN. 
 
-The code base also supports using Saint Sampler for pretraining on a small subgraph. 
+- Supports **graphmae, grace, cca_ssg, bgrl** 
 
-(See more details in *GraphSAINT: Graph Sampling Based Inductive Learning Method* https://arxiv.org/abs/1907.04931v4)
+- Supports transductive node classification on  **cora, citeseer, pubmed** datasets
+
+- Supports using **Saint Sampler** or pretraining on **full graph**
+
+- Provides a simple and easy to use interface to **add other baseline methods**
+
+- Provides **tuned parameter configs** for reproducing results on different baselines
+
+  The reproduced results are as follows ( using config files in './configs/' and training on 1 3090GPU )
+
+|          | Cora  | CiteSeer | PubMed |
+| -------- | ----- | -------- | ------ |
+| GraphMAE | 84.20 | 73.40    | 81.70  |
+| Grace    | 81.80 | 70.20    | 81.40  |
+| CCA-SSG  | 83.20 | 72.20    | 80.20  |
+| BGRL     | 81.80 | 71.90    | 80.70  |
 
 ## Methods included
 
@@ -11,25 +26,18 @@ The code base also supports using Saint Sampler for pretraining on a small subgr
 
   ( https://arxiv.org/abs/2205.10803 )
 
-  ![image-20230401154756308](.\README.assets\image-20230401154756308.png)
-
 - **Grace**: *Deep Graph Contrastive Representation Learning*
 
   ( https://arxiv.org/abs/2006.04131#)
-
-  ![image-20230409113629844](.\README.assets\image-20230409113629844.png)
 
 - **BGRL**: *BOOTSTRAPPED REPRESENTATION LEARNING ON GRAPHS*
 
   ( https://openreview.net/forum?id=QrzVRAA49Ud )
 
-  ![model](.\README.assets\model.PNG)
-
 - **CCA-SSG**: *From Canonical Correlation Analysis to Self-supervised Graph Neural Networks*
 
   ( https://proceedings.neurips.cc/paper/2021/hash/00ac8ed3b4327bdd4ebbebcb2ba10a00-Abstract.html )
 
-  ![image-20230409113744297](.\README.assets\image-20230409113744297.png)
 
 ## Dependencies
 
@@ -37,30 +45,33 @@ The code base also supports using Saint Sampler for pretraining on a small subgr
 - [Pytorch](https://pytorch.org/) >= 1.9.0
 - [dgl](https://www.dgl.ai/) >= 1.0.0 ( `dgl.nn.function.copy_src` is renamed as `dgl.nn.function.copy_u` )
 - pyyaml == 5.4.1
-- Scikit-learn
 - Numpy
 - tqdm
 
-## Usage
+## How to run?
 
 ### Example Commands
 
 ```shell
-python main_GraphMAE.py --dataset cora --encoder gat --decoder gat --seeds 0 --device 0 --use_cfg
-python main_Grace.py --dataset cora --encoder gin --use_cfg --seeds 0 --device 0
-python main_CCA_SSG.py --dataset cora --encoder gcn --seeds 0 --device 0 --use_cfg 
-python main_BGRL.py --dataset cora --encoder gat --device 0 --lr 0.0001 --epochs 20 --use_cfg
-# --use_sampler --budget 500 --num_iters 1000
+python main_ssl_gnn_train.py --model graphmae --dataset cora --encoder gat --decoder gat --device 0 --use_sampler --budget 500 --eval_nums 5 --num_iters 0
+
+python main_ssl_gnn_train.py --model grace --dataset citeseer use_cfg
+
+python main_ssl_gnn_train.py --model cca_ssg --dataset pubmed --encoder gcn --device 0 --use_sampler --budget 500 --eval_nums 5 --num_iters 0
+
+python main_ssl_gnn_train.py --model bgrl --dataset cora --device 0 --use_cfg ----eval_nums 5 --no_verbose
 ```
 
-### Arguments
+### Important Arguments
 
 Command line parameter used to control training ( for all 4 methods ):
 
+- The `--model` argument should be one of [ **graphmae, grace, cca_ssg, bgrl** ].
 - The `--dataset` argument should be one of [ **cora, citeseer, pubmed** ].
 - The `--encoder`/ `--decoder` argument should be one of [ **gcn, gat, dotgat, gin, mlp** ].
 - The `--device` argument should be an integer ( default -1 for 'cpu' ).
-- The `--use_cfg` argument means using the configs to set training arguments.
+- The `--use_cfg` argument means using the configs to set training arguments (use `--use_cfg_path` to specify path).
+- The `--eval_nums` argument indicates how often the evaluation is performed during pretraining.
 
 If you want to use **Saint sampler** for mini-batch training on subgraph, you may add the arguments below. 
 
@@ -68,20 +79,37 @@ If you want to use **Saint sampler** for mini-batch training on subgraph, you ma
 - `--budget`: batch-size, which is the number of nodes in the subgraph sampled by the sampler at one time
 - `--num_iters`:  The number of training iteration, if num_iters is 0, then use default $ N(graph_{full})\times epochs/ budget$
 
+
+
+## How to add other baseline methods?
+
+Follow the three steps below (do not modify *'main_ssl_gnn_train.py'* ):
+
+1. add your **'model.py'** into **'./models/'**, in which your `nn.Module` class need to implement the following interfaces：
+   - `model.__init__(self,...)`: Init parameters. You can use the basic gnn models provided in the *'./gnn_modules/'* ( use `setup_module()` to automatically select the encoder type )
+   - `model.forward(self,g,x) -> loss`: calculate and return the final loss
+     - g : (dgl.DGLGraph)  the input graph
+     - x : (torch.tensor) feature of nodes
+   - `model.embed(self,g,x) -> torch.tensor`: return the embedded representation calculated by encoder
+     - g : (dgl.DGLGraph)  the input graph
+     - x : (torch.tensor) feature of nodes
+2. modify **`build_args()`** in *'utils/utils.py'* : add arguments of the new model
+3. modify **`build_model(args)`** in *'models/\_\_init\_\_.py'*: use arguments in args to build your model 
+
 ## Directory description
 
 A brief description of the code base structure
 
-- `main_BGRL.py, main_CCA_SSG.py , main_Grace.py, main_GraphMAE.py`: Includes master functions for different methods
-- `./bgrl/`,  `./cca_ssg/`, `./grace/`, `./graphmae/`: models for different methods and necessary auxiliary functions
+- `main_ssl_gnn_train.py`: Includes main functions for different methods ( using a trainer class to organize all training and evaluation functions ).
+- `./models/`: *'.py'* models for different baseline models
 - `./utils/` : Common functional tools
-  - `dataset_utils.py`: functions for preparing datasets and dataloaders
-  - `graph_augmentation.py`: functions for graph augmentations which are implemented with dgl
-  - `train_evaluation_utils.py`: functions for evaluation ( linear evaluation for nodes classification )
+  - `dataset.py`: functions for preparing datasets and dataloaders
+  - `augmentation.py`: functions for graph augmentations which are implemented with dgl
+  - `utils.py`: common functions for training and evaluation ( like `build_args()`, `build_model(args)`)
 
 - `./gnn_modules/`: common graph encoders implemented with dgl
   - including `gcn.py, gat.py, gin.py, dot_gat.py`, dot_gat is an equivalent implementations for gat
-- `./configs/`: training settings for different methods ,use `--use_cfg` to load it 
+- `./configs/`: tuned model settings for different baselines on different dataset, use `--use_cfg` to load it 
 - `Effect_of_Saint_Sampler.ipynb`: a presentation document that tests the effects of the Saint Sampler method on the cora dataset of GRACE and GraphMAE
 
 ## References
