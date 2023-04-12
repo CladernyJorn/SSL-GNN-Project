@@ -77,7 +77,7 @@ If you want to use **Saint sampler** for mini-batch training on subgraph, you ma
 
 - ` --use_sampler`: use saint sampler for training instead of the default full graph training
 - `--budget`: batch-size, which is the number of nodes in the subgraph sampled by the sampler at one time
-- `--num_iters`:  The number of training iteration, if num_iters is 0, then use default $ N(graph_{full})\times epochs/ budget$
+- `--num_iters`:  The number of training iteration, if num_iters is 0, then use default $$ N(graph_{full})\times epochs/ budget$$
 
 
 
