@@ -1,5 +1,3 @@
-import copy
-from tqdm import tqdm
 import torch
 import torch.nn as nn
 from torch import optim as optim
@@ -7,6 +5,8 @@ import random
 import numpy as np
 import argparse
 import yaml
+import psutil
+import os
 
 
 def create_optimizer(opt, model, lr, weight_decay):
@@ -53,6 +53,8 @@ def process_args(args):
         if path == "":
             if args.model == "graphmae":
                 path = "./configs/best_GraphMAE_configs.yml"
+            elif args.model == "graphmae2":
+                path = "./configs/best_GraphMAE2_configs.yml"
             elif args.model == "grace":
                 path = "./configs/best_Grace_configs.yml"
             elif args.model == "cca_ssg":
@@ -68,6 +70,11 @@ def process_args(args):
             if "lr" in k or "weight_decay" in k or "tau" in k or "lambd" in k:
                 v = float(v)
             setattr(args, k, v)
+    if args.dataset not in ['cora', 'citeseer', 'pubmed']:
+        args.use_sampler = True
+    if args.ego_graph_file_path==None:
+        if args.dataset=="ogbn-arxiv":
+            args.ego_graph_file_path=os.path.join("lc_ego_graphs","ogbn-arxiv-lc-ego-graphs-256.pt")
     return args
 
 
@@ -99,11 +106,16 @@ def accuracy(y_pred, y_true):
     return correct / len(y_true)
 
 
+def show_occupied_memory():
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 ** 2
+
+
 # build args for all models
 def build_args():
     parser = argparse.ArgumentParser(description="SSL-GNN-Train Settings")
     parser.add_argument("--model", type=str, default="graphmae")
-    parser.add_argument("--seeds", type=int, nargs="+", default=[0])
+    parser.add_argument("--seeds", type=int, nargs="+", default=[i for i in range(1)])
     parser.add_argument("--dataset", type=str, default="cora")
     parser.add_argument("--device", type=int, default=-1)
 
@@ -131,6 +143,17 @@ def build_args():
     parser.add_argument("--alpha_l", type=float, default=2, help="`pow`coefficient for `sce` loss")
     parser.add_argument("--concat_hidden", action="store_true", default=False)
     parser.add_argument("--num_out_heads", type=int, default=1, help="number of output attention heads")
+    # rest parameters in GraphMAE2
+    parser.add_argument("--num_dec_layers", type=int, default=1)
+    parser.add_argument("--num_remasking", type=int, default=3)
+    parser.add_argument("--remask_rate", type=float, default=0.5)
+    parser.add_argument("--remask_method", type=str, default="random")
+    parser.add_argument("--mask_method", type=str, default="random")
+    parser.add_argument("--drop_edge_rate_f", type=float, default=0.0)
+    parser.add_argument("--label_rate", type=float, default=1.0)
+    parser.add_argument("--lam", type=float, default=1.0)
+    parser.add_argument("--delayed_ema_epoch", type=int, default=0)
+    parser.add_argument("--momentum", type=float, default=0.996)
 
     # parameters of Grace
     parser.add_argument("--num_proj_hidden", type=int, default=1, help="h->z linear in grace")
@@ -157,15 +180,25 @@ def build_args():
     parser.add_argument("--lr", type=float, default=0.005, help="learning rate")
 
     # eval settings
+    parser.add_argument("--linear_prob", action="store_true", default=False)
     parser.add_argument("--weight_decay", type=float, default=5e-4, help="weight decay")
     parser.add_argument("--max_epoch_f", type=int, default=30)
     parser.add_argument("--lr_f", type=float, default=0.001, help="learning rate for evaluation")
     parser.add_argument("--weight_decay_f", type=float, default=0.0, help="weight decay for evaluation")
 
-    # graph sampler settings
+    # graph batch training settings
     parser.add_argument("--use_sampler", action="store_true", default=False)
-    parser.add_argument("--budget", type=int, default=500, help="number of nodes sampled per batch with SaintSampler")
-    parser.add_argument("--num_iters", type=int, default=0, help="iters to train (0: max_epoch*total_nodes_num/budget)")
+    parser.add_argument("--sampling_method", type=str, default="lc", help="sampling method, `lc` or `saint`")
+    parser.add_argument("--batch_size", type=int, default=256)
+    parser.add_argument("--batch_size_f", type=int, default=128)
+    parser.add_argument("--batch_size_linear_prob", type=int, default=4096)
+    parser.add_argument("--full_graph_forward", action="store_true", default=False)
+    # saint
+    parser.add_argument("--num_iters", type=int, default=0, help="subgraphs per epoch")
+    parser.add_argument("--saint_budget", type=int, default=10000, help="saint sampled subgraph nodes")
+    # local clustering
+    parser.add_argument("--ego_graph_file_path", type=str, default=None)
+    parser.add_argument("--data_dir", type=str, default="data")
 
     # other settings
     parser.add_argument("--load_model", action="store_true")
