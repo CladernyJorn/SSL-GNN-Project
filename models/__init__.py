@@ -1,10 +1,12 @@
 try:
     from graphmae import model_graphmae
+    from graphmae2 import model_graphmae2
     from grace import model_grace
     from cca_ssg import model_cca_ssg
     from bgrl import model_bgrl
 except:
     from models.graphmae import model_graphmae
+    from models.graphmae2 import model_graphmae2
     from models.grace import model_grace
     from models.cca_ssg import model_cca_ssg
     from models.bgrl import model_bgrl
@@ -32,6 +34,36 @@ def build_model(args):
             replace_rate=args.replace_rate,
             alpha_l=args.alpha_l,
             concat_hidden=args.concat_hidden,
+        )
+    elif args.model == 'graphmae2':
+        return model_graphmae2(
+            in_dim=args.num_features,
+            num_hidden=args.num_hidden,
+            num_layers=args.num_layers,
+            num_dec_layers=args.num_dec_layers,
+            num_remasking=args.num_remasking,
+            nhead=args.num_heads,
+            nhead_out=args.num_out_heads,
+            activation=args.activation,
+            feat_drop=args.in_drop,
+            attn_drop=args.attn_drop,
+            negative_slope=args.negative_slope,
+            residual=args.residual,
+            encoder_type=args.encoder,
+            decoder_type=args.decoder,
+            mask_rate=args.mask_rate,
+            remask_rate=args.remask_rate,
+            mask_method=args.mask_method,
+            norm=args.norm,
+            loss_fn=args.loss_fn,
+            drop_edge_rate=args.drop_edge_rate,
+            alpha_l=args.alpha_l,
+            lam=args.lam,
+            delayed_ema_epoch=args.delayed_ema_epoch,
+            replace_rate=args.replace_rate,
+            remask_method=args.remask_method,
+            momentum=args.momentum,
+            zero_init=args.dataset in ("cora", "pubmed", "citeseer")
         )
     elif args.model == 'cca_ssg':
         return model_cca_ssg(

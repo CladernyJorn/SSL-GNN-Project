@@ -13,12 +13,12 @@ A coding project that integrates 4 recent SSL methods applied in GNN.
 
   The reproduced results are as follows ( using config files in './configs/' and training on 1 3090GPU )
 
-|          | Cora  | CiteSeer | PubMed |
-| -------- | ----- | -------- | ------ |
-| GraphMAE | 84.20 | 73.40    | 81.70  |
-| Grace    | 81.80 | 70.20    | 81.40  |
-| CCA-SSG  | 83.20 | 72.20    | 80.20  |
-| BGRL     | 81.80 | 71.90    | 80.70  |
+|          | Cora            | CiteSeer        | PubMed          |
+| -------- | --------------- | --------------- | --------------- |
+| GraphMAE | $84.08\pm0.59$  | $73.17\pm0.40$  | $80.98\pm 0.50$ |
+| Grace    | $81.48\pm0.67$  | $69.12\pm0.79$  | $81.07\pm0.52$  |
+| CCA-SSG  | $82.80\pm 0.74$ | $70.70\pm0.96$  | $80.06\pm0.77$  |
+| BGRL     | $81.36\pm 0.71$ | $70.08\pm 0.84$ | $80.18\pm0.77$  |
 
 ## Methods included
 

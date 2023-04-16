@@ -1,0 +1,17 @@
+.idea
+/bgrl
+/cca_ssg
+/grace
+/graphmae
+/GraphMAE2-main
+/README.assets
+/scripts
+main_BGRL.py
+main_CCA_SSG.py
+main_Grace.py
+main_GraphMAE.py
+main_ssl_gnn_train.py
+test.py
+结果记录.md
+/utils/LocalGraphClustering-master
+

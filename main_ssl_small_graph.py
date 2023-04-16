@@ -29,14 +29,9 @@ class ModelTrainer:
 
     def train_eval(self):
         args = self._args
-        if not self._use_sampler:
-            self._graph, (self.num_features, self.num_classes) = load_dataset(args.dataset)
-            self._eval_steps = args.eval_steps if args.eval_nums == 0 else args.max_epoch // args.eval_nums
-        else:
-            self._graph, self._pretrain_dataloader, num_iters, (self.num_features, self.num_classes) = load_dataloader(
-                args.dataset, args.sampler_method, args)
-            self._eval_steps = args.eval_steps if args.eval_nums == 0 else num_iters // args.eval_nums
-            self._args.max_epoch = num_iters
+        assert not self._use_sampler, f"{args.dataset} can be trained on full graph, do not use batch sampler!"
+        self._graph, (self.num_features, self.num_classes) = load_dataset(args.dataset)
+        self._eval_steps = args.eval_steps if args.eval_nums == 0 else args.max_epoch // args.eval_nums
         self._args.num_features = self.num_features
         if self._verbose:
             print(f"Data: {self._graph}")
@@ -95,26 +90,21 @@ class ModelTrainer:
         args = self._args
         if self._verbose:
             print(f"\n--- Start pretraining {args.model} model on {args.dataset} ", end="")
-            if self._use_sampler:
-                print(f"using Saint ({args.budget} nodes per epoch)! ---")
-            else:
-                print(f"on full graph ({self._graph.number_of_nodes()} nodes per epoch)! ---")
 
-        epoch_iter = tqdm(self._pretrain_dataloader) if self._use_sampler else tqdm(range(args.max_epoch))
-        iters = enumerate(epoch_iter) if self._use_sampler else epoch_iter
+        epoch_iter = tqdm(range(args.max_epoch))
         dev_best = 0
         test_best = 0
         self.model.to(self._device)
-        for items in iters:
-            if self._use_sampler:
-                epoch, graph = items
-            else:
-                epoch = items
-                graph = self._graph
+        for epoch in epoch_iter:
+            graph = self._graph
             self.model.train()
             graph = graph.to(self._device)
             in_feature = graph.ndata['feat'].to(self._device)
-            loss = self.model(graph, in_feature)
+            if args.model == "graphmae2":
+                targets = torch.arange(in_feature.shape[0], device=self._device, dtype=torch.long)
+                loss = self.model(graph, in_feature, targets=targets)
+            else:
+                loss = self.model(graph, in_feature)
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -122,9 +112,7 @@ class ModelTrainer:
                 self.scheduler.step()
             if args.model == "bgrl":
                 self.model.update_moving_average()  # bgrl uses EMA updating strategy
-
             epoch_iter.set_description(f"# Epochs {epoch}: train_loss: {loss.item():.4f}")
-
             if self._verbose:
                 if (epoch + 1) % self._eval_steps == 0:
                     self.infer_embeddings()
@@ -133,7 +121,6 @@ class ModelTrainer:
                         dev_best = dev_acc
                         test_best = test_acc
                     print("validation: {:.4f}, test: {:.4f} \n".format(dev_acc, test_acc))
-
         if self._verbose:
             print(f"validation: {dev_best:.4f}, test: {test_best:.4f}")
 
