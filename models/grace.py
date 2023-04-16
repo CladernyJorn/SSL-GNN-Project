@@ -3,8 +3,7 @@ import torch.nn.functional as F
 import copy
 from typing import Optional
 from gnn_modules import setup_module
-from dgl import DropEdge, FeatMask
-
+from utils.augmentation import random_aug
 
 class model_grace(torch.nn.Module):
     def __init__(
@@ -63,18 +62,12 @@ class model_grace(torch.nn.Module):
         self.fc2 = torch.nn.Linear(num_proj_hidden, num_hidden)
 
     def forward(self, g, x: torch.Tensor):
-        edge_mask1 = DropEdge(p=self.drop_edge_rate_1)
-        edge_mask2 = DropEdge(p=self.drop_edge_rate_2)
-        feature_mask1 = FeatMask(p=self.drop_feature_rate_1, node_feat_names=['feat'])
-        feature_mask2 = FeatMask(p=self.drop_feature_rate_2, node_feat_names=['feat'])
-        # DGL.FeatMask will transform the origin graph as well
-        # deepcopy first!
-        graph_1 = copy.deepcopy(g)
-        graph_2 = copy.deepcopy(g)
-        graph_1 = feature_mask1(edge_mask1(graph_1))
-        graph_2 = feature_mask2(edge_mask2(graph_2))
-        z1 = self.embed(graph_1, graph_1.ndata['feat'])
-        z2 = self.embed(graph_2, graph_1.ndata['feat'])
+        graph1, feat1 = random_aug(g.remove_self_loop(), x, self.drop_feature_rate_1, self.drop_edge_rate_1)
+        graph2, feat2 = random_aug(g.remove_self_loop(), x, self.drop_feature_rate_2, self.drop_edge_rate_2)
+        graph_1 = graph1.add_self_loop()
+        graph_2 = graph2.add_self_loop()
+        z1 = self.embed(graph_1, feat1)
+        z2 = self.embed(graph_2, feat2)
         return self.loss(z1, z2)
 
     def embed(self, g, x: torch.Tensor):

@@ -5,8 +5,7 @@ from typing import Optional
 import numpy as np
 import copy
 from gnn_modules import setup_module
-from dgl import DropEdge, FeatMask
-
+from utils.augmentation import random_aug
 
 class model_bgrl(nn.Module):
 
@@ -78,24 +77,16 @@ class model_bgrl(nn.Module):
         update_moving_average(self.teacher_ema_updater, self.teacher_encoder, self.student_encoder)
 
     def forward(self, g, x):
-        edge_mask1 = DropEdge(p=self.drop_edge_rate_1)
-        edge_mask2 = DropEdge(p=self.drop_edge_rate_2)
-        feature_mask1 = FeatMask(p=self.drop_feature_rate_1, node_feat_names=['feat'])
-        feature_mask2 = FeatMask(p=self.drop_feature_rate_2, node_feat_names=['feat'])
-        # DGL.FeatMask will transform the origin graph as well
-        # deepcopy first!
-        graph_1 = copy.deepcopy(g)
-        graph_2 = copy.deepcopy(g)
-        graph_1 = feature_mask1(edge_mask1(graph_1))
-        graph_2 = feature_mask2(edge_mask2(graph_2))
+        graph1, feat1 = random_aug(g.remove_self_loop(), x, self.drop_feature_rate_1, self.drop_edge_rate_1)
+        graph2, feat2 = random_aug(g.remove_self_loop(), x, self.drop_feature_rate_2, self.drop_edge_rate_2)
         # encoding
-        v1_student = self.student_encoder(graph_1, graph_1.ndata['feat'])
-        v2_student = self.student_encoder(graph_2, graph_1.ndata['feat'])
+        v1_student = self.student_encoder(graph1, feat1)
+        v2_student = self.student_encoder(graph2, feat2)
         v1_pred = self.student_predictor(v1_student)
         v2_pred = self.student_predictor(v2_student)
         with torch.no_grad():
-            v1_teacher = self.teacher_encoder(graph_1, graph_1.ndata['feat'])
-            v2_teacher = self.teacher_encoder(graph_2, graph_1.ndata['feat'])
+            v1_teacher = self.teacher_encoder(graph1, feat1)
+            v2_teacher = self.teacher_encoder(graph2, feat2)
         loss1 = loss_fn(v1_pred, v2_teacher.detach())
         loss2 = loss_fn(v2_pred, v1_teacher.detach())
         loss = loss1 + loss2
