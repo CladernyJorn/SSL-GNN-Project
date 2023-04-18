@@ -228,8 +228,8 @@ class GATConv(nn.Module):
                 src_prefix_shape = feat[0].shape[:-1]
                 dst_prefix_shape = feat[1].shape[:-1]
                 h_src = self.feat_drop(feat[0])
-                h_dst = self.feat_drop(feat[1])
-                # h_dst = feat[1]
+                # h_dst = self.feat_drop(feat[1])
+                h_dst = feat[1]
                 if not hasattr(self, 'fc_src'):
                     feat_src = self.fc(h_src).view(
                         *src_prefix_shape, self._num_heads, self._out_feats)

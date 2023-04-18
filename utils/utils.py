@@ -212,9 +212,9 @@ def build_args():
     parser.add_argument("--use_sampler", action="store_true", default=False)
     parser.add_argument("--pretrain_sampling_method", type=str, default="lc", help="`lc` or `saint`")
     parser.add_argument("--eval_sampling_method", type=str, default="lc", help="`lc` or `saint`")
-    parser.add_argument("--batch_size", type=int, default=256)
-    parser.add_argument("--batch_size_f", type=int, default=128)
-    parser.add_argument("--batch_size_linear_prob", type=int, default=4096)
+    parser.add_argument("--batch_size", type=int, default=512)
+    parser.add_argument("--batch_size_f", type=int, default=256)
+    parser.add_argument("--batch_size_linear_prob", type=int, default=5120)
     parser.add_argument("--full_graph_forward", action="store_true", default=False)
     # cluster-gcn
     parser.add_argument("--cluster_gcn_batch_size", type=int, default=20, help="num of partitions per batch")

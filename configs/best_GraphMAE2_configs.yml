@@ -90,7 +90,7 @@ ogbn-arxiv:
   max_epoch: 60
   max_epoch_f: 1000
   batch_size: 512
-  batch_size_f: 256
+  batch_size_f: 512
   mask_rate: 0.5
   num_layers: 4
   encoder: gat
@@ -123,7 +123,7 @@ ogbn-products:
   max_epoch: 20
   max_epoch_f: 1000
   batch_size: 512
-  batch_size_f: 256
+  batch_size_f: 512
   mask_rate: 0.5
   encoder: gat
   decoder: gat
@@ -155,7 +155,7 @@ ogbn-papers100M:
   max_epoch: 10
   max_epoch_f: 1000
   batch_size: 512
-  batch_size_f: 256
+  batch_size_f: 512
   mask_rate: 0.5
   encoder: gat
   decoder: gat

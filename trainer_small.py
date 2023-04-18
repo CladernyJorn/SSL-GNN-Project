@@ -35,13 +35,14 @@ class ModelTrainer:
         self._args.num_features = self.num_features
         if self._verbose:
             print(f"Data: {self._graph}")
+        print(
+            f"\n--- Start pretraining {args.model} model on {args.dataset} ---")
         test_list = []
         estp_test_list = []
         dev_list = []
         estp_dev_list = []
         for i, seed in enumerate(args.seeds):
-            if self._verbose:
-                print(f"####### Run{i} for seed {seed} #######")
+            print(f"####### Run{i} for seed {seed} #######")
             set_random_seed(seed)
             self.model = build_model(args)
             self.optimizer = create_optimizer(args.optimizer, self.model, args.lr, args.weight_decay)
@@ -52,9 +53,9 @@ class ModelTrainer:
             # need to pretrain
             if not args.load_model:
                 # get initial results
-                self.infer_embeddings()
-                dev_acc, estp_dev_acc, test_acc, estp_test_acc = self.evaluate()
-                if self._verbose:
+                if self._verbose and args.eval_first:
+                    self.infer_embeddings()
+                    dev_acc, estp_dev_acc, test_acc, estp_test_acc = self.evaluate()
                     print("initial test acc: {:.4f}".format(test_acc))
                 self.pretrain()
                 model = self.model.cpu()
@@ -91,7 +92,7 @@ class ModelTrainer:
         if self._verbose:
             print(f"\n--- Start pretraining {args.model} model on {args.dataset} ", end="")
 
-        epoch_iter = tqdm(range(args.max_epoch))
+        epoch_iter = tqdm(range(args.max_epoch))if self._verbose else range(args.max_epoch)
         dev_best = 0
         test_best = 0
         self.model.to(self._device)
@@ -112,8 +113,8 @@ class ModelTrainer:
                 self.scheduler.step()
             if args.model == "bgrl":
                 self.model.update_moving_average()  # bgrl uses EMA updating strategy
-            epoch_iter.set_description(f"# Epochs {epoch}: train_loss: {loss.item():.4f}")
             if self._verbose:
+                epoch_iter.set_description(f"# Epochs {epoch}: train_loss: {loss.item():.4f}")
                 if (epoch + 1) % self._eval_steps == 0:
                     self.infer_embeddings()
                     dev_acc, estp_dev_acc, test_acc, estp_test_acc = self.evaluate()

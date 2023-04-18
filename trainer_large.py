@@ -34,7 +34,6 @@ class ModelTrainer:
         set_random_seed(0)  # seed for pretrain
         self._full_graph_forward = hasattr(args,
                                            "full_graph_forward") and args.full_graph_forward and not args.linear_prob
-        assert args.use_sampler, f"{args.dataset} need to be trained on samled batch"
         memory_before_load = show_occupied_memory()
         self._args.num_features, self._pretrain_dataloader = load_dataloader("pretrain", args.dataset, self._args)
         if self._verbose:
@@ -75,8 +74,8 @@ class ModelTrainer:
                 print(f"####### Run{i} for seed {seed} #######")
             set_random_seed(seed)
             self.infer_embeddings()
-            test_acc= self.evaluate()
-            test_list=test_list+test_acc
+            test_acc = self.evaluate()
+            test_list = test_list + test_acc
         final_test_acc, final_test_acc_std = np.mean(test_list), np.std(test_list)
         print(f"# final-test-acc: {final_test_acc:.4f}±{final_test_acc_std:.4f}", end="")
 
@@ -168,14 +167,19 @@ class ModelTrainer:
 
     def evaluate(self, mute=True):
         args = self._args
-        criterion = torch.nn.CrossEntropyLoss()
         train_emb, val_emb, test_emb = self._train_emb, self._val_emb, self._test_emb
         train_label = self._train_label.to(torch.long)
         val_label = self._val_label.to(torch.long)
         test_label = self._test_label.to(torch.long)
-        classifier = LogisticRegression(self._train_emb.shape[1], int(train_label.max().item() + 1)).to(self._device)
-        optimizer = create_optimizer("adam", classifier, args.lr_f, args.weight_decay_f)
-        if args.batch_size_linear_prob > 0:
+        acc = []
+        for i, seed in enumerate(args.linear_prob_seeds):
+            if self._verbose:
+                print(f"####### Run seed {seed} for LinearProbing...")
+            set_random_seed(seed)
+            criterion = torch.nn.CrossEntropyLoss()
+            classifier = LogisticRegression(self._train_emb.shape[1], int(train_label.max().item() + 1)).to(
+                self._device)
+            optimizer = create_optimizer("adam", classifier, args.lr_f, args.weight_decay_f)
             train_loader = LinearProbingDataLoader(np.arange(len(train_emb)), train_emb, train_label,
                                                    batch_size=args.batch_size_linear_prob, num_workers=4,
                                                    persistent_workers=True, shuffle=False)
@@ -185,15 +189,6 @@ class ModelTrainer:
             test_loader = LinearProbingDataLoader(np.arange(len(test_emb)), test_emb, test_label,
                                                   batch_size=args.batch_size_linear_prob,
                                                   num_workers=4, persistent_workers=True, shuffle=False)
-        else:
-            train_loader = [np.arange(len(train_emb))]
-            val_loader = [np.arange(len(val_emb))]
-            test_loader = [np.arange(len(test_emb))]
-        acc = []
-        for i, seed in enumerate(args.linear_prob_seeds):
-            if self._verbose:
-                print(f"####### Run seed {seed} for LinearProbing...")
-            set_random_seed(seed)
             best_val_acc = 0
             best_classifier = None
             epoch_iter = tqdm(range(args.max_epoch_f)) if self._verbose else range(args.max_epoch_f)
@@ -215,12 +210,15 @@ class ModelTrainer:
                 if val_acc >= best_val_acc:
                     best_val_acc = val_acc
                     best_classifier = copy.deepcopy(classifier)
-                if not mute:
-                    print(
-                        f"# Epoch: {epoch}, train_loss:{loss.item(): .4f}, val_acc:{val_acc}")
+                if self._verbose:
+                    epoch_iter.set_description(
+                        f"# Epoch: {epoch}, train_loss:{loss.item(): .4f}, val_acc:{val_acc:.4f}")
+
             best_classifier.eval()
             with torch.no_grad():
-                test_acc = self.eval_forward(classifier, test_loader, test_label)
+                test_acc = self.eval_forward(best_classifier, test_loader, test_label)
+            if self._verbose:
+                print(f"# test_acc: {test_acc:.4f}")
             acc.append(test_acc)
         if self._verbose:
             print(f"# test_acc: {np.mean(acc):.4f}±{np.std(acc):.4f}")
