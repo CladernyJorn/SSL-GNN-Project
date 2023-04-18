@@ -1,17 +1,17 @@
 import torch
 import torch.nn as nn
-
+import dgl
 from dgl.ops import edge_softmax
 import dgl.function as fn
 from dgl.utils import expand_as_pair
-
+import tqdm
 from graphmae.utils import create_activation
 
 
 class GAT(nn.Module):
     def __init__(self,
-                 in_dim, #1433
-                 num_hidden, #512
+                 in_dim,  # 1433
+                 num_hidden,  # 512
                  out_dim,
                  num_layers,
                  nhead,
@@ -29,6 +29,8 @@ class GAT(nn.Module):
         super(GAT, self).__init__()
         self.out_dim = out_dim
         self.num_heads = nhead
+        self.num_heads_out = nhead_out
+        self.num_hidden = num_hidden
         self.num_layers = num_layers
         self.gat_layers = nn.ModuleList()
         self.activation = activation
@@ -37,72 +39,93 @@ class GAT(nn.Module):
         last_activation = create_activation(activation) if encoding else None
         last_residual = (encoding and residual)
         last_norm = norm if encoding else None
-        
+
         if num_layers == 1:
             self.gat_layers.append(GATConv(
                 in_dim, out_dim, nhead_out,
-                feat_drop, attn_drop, negative_slope, last_residual, norm=last_norm, concat_out=concat_out,allow_zero_in_degree=allow_zero_degree))
+                feat_drop, attn_drop, negative_slope, last_residual, norm=last_norm, concat_out=concat_out,
+                allow_zero_in_degree=allow_zero_degree))
         else:
             # input projection (no residual)
             self.gat_layers.append(GATConv(
                 in_dim, num_hidden, nhead,
-                feat_drop, attn_drop, negative_slope, residual, create_activation(activation), norm=norm, concat_out=concat_out,allow_zero_in_degree=allow_zero_degree))
+                feat_drop, attn_drop, negative_slope, residual, create_activation(activation), norm=norm,
+                concat_out=concat_out, allow_zero_in_degree=allow_zero_degree))
             # hidden layers
             for l in range(1, num_layers - 1):
                 # due to multi-head, the in_dim = num_hidden * num_heads
                 self.gat_layers.append(GATConv(
                     num_hidden * nhead, num_hidden, nhead,
-                    feat_drop, attn_drop, negative_slope, residual, create_activation(activation), norm=norm, concat_out=concat_out,allow_zero_in_degree=allow_zero_degree))
+                    feat_drop, attn_drop, negative_slope, residual, create_activation(activation), norm=norm,
+                    concat_out=concat_out, allow_zero_in_degree=allow_zero_degree))
             # output projection
             self.gat_layers.append(GATConv(
                 num_hidden * nhead, out_dim, nhead_out,
-                feat_drop, attn_drop, negative_slope, last_residual, activation=last_activation, norm=last_norm, concat_out=concat_out,allow_zero_in_degree=allow_zero_degree))
+                feat_drop, attn_drop, negative_slope, last_residual, activation=last_activation, norm=last_norm,
+                concat_out=concat_out, allow_zero_in_degree=allow_zero_degree))
 
-        # if norm is not None:
-        #     self.norms = nn.ModuleList([
-        #         norm(num_hidden * nhead)
-        #         for _ in range(num_layers - 1)
-        #     ])
-        #     if self.concat_out:
-        #         self.norms.append(norm(num_hidden * nhead))
-        # else:
-        #     self.norms = None
-    
         self.head = nn.Identity()
 
-    # def forward(self, g, inputs):
-    #     h = inputs
-    #     for l in range(self.num_layers):
-    #         h = self.gat_layers[l](g, h)
-    #         if l != self.num_layers - 1:
-    #             h = h.flatten(1)
-    #             if self.norms is not None:
-    #                 h = self.norms[l](h)
-    #     # output projection
-    #     if self.concat_out:
-    #         out = h.flatten(1)
-    #         if self.norms is not None:
-    #             out = self.norms[-1](out)
-    #     else:
-    #         out = h.mean(1)
-    #     return self.head(out)
-    
+    def inference(self, g, x, batch_size, device, emb=False):
+        """
+        Inference with the GAT model on full neighbors (i.e. without neighbor sampling).
+        g : the entire graph.
+        x : the input of entire node set.
+        The inference code is written in a fashion that it could handle any number of nodes and
+        layers.
+        """
+        num_heads = self.num_heads
+        num_heads_out = self.num_heads_out
+        for l, layer in enumerate(self.gat_layers):
+            if l < self.num_layers - 1:
+                y = torch.zeros(g.num_nodes(),
+                                self.num_hidden * num_heads if l != len(self.gat_layers) - 1 else self.num_classes)
+            else:
+                if emb == False:
+                    y = torch.zeros(g.num_nodes(),
+                                    self.num_hidden if l != len(self.gat_layers) - 1 else self.num_classes)
+                else:
+                    y = torch.zeros(g.num_nodes(), self.out_dim * num_heads_out)
+            sampler = dgl.dataloading.MultiLayerFullNeighborSampler(1)
+            dataloader = dgl.dataloading.DataLoader(
+                g,
+                torch.arange(g.num_nodes()),
+                sampler,
+                batch_size=batch_size,
+                shuffle=False,
+                drop_last=False,
+                num_workers=8)
+
+            for input_nodes, output_nodes, blocks in tqdm.tqdm(dataloader):
+                block = blocks[0].int().to(device)
+                h = x[input_nodes].to(device)
+                if l < self.num_layers - 1:
+                    h = layer(block, h)
+                else:
+                    h = layer(block, h)
+
+                if l == len(self.gat_layers) - 1 and (emb == False):
+                    h = self.head(h)
+                y[output_nodes] = h.cpu()
+            x = y
+        return y
+
     def forward(self, g, inputs, return_hidden=False):
         h = inputs
         hidden_list = []
         for l in range(self.num_layers):
             h = self.gat_layers[l](g, h)
             hidden_list.append(h)
-            # h = h.flatten(1)
-        # output projection
+
         if return_hidden:
             return self.head(h), hidden_list
         else:
-            return self.head(h)
+            return h
 
     def reset_classifier(self, num_classes):
+        self.num_classes = num_classes
+        self.is_pretraining = False
         self.head = nn.Linear(self.num_heads * self.out_dim, num_classes)
-
 
 
 class GATConv(nn.Module):
@@ -148,16 +171,13 @@ class GATConv(nn.Module):
                 self.res_fc = nn.Linear(
                     self._in_dst_feats, num_heads * out_feats, bias=False)
             else:
-                self.res_fc = nn.Identity()
+                #self.res_fc=nn.Identity()
+                self.res_fc = None
         else:
             self.register_buffer('res_fc', None)
         self.reset_parameters()
         self.activation = activation
-        # if norm is not None:
-        #     self.norm = norm(num_heads * out_feats)
-        # else:
-        #     self.norm = None
-    
+
         self.norm = norm
         if norm is not None:
             self.norm = norm(num_heads * out_feats)
@@ -195,20 +215,21 @@ class GATConv(nn.Module):
             if not self._allow_zero_in_degree:
                 if (graph.in_degrees() == 0).any():
                     raise RuntimeError('There are 0-in-degree nodes in the graph, '
-                                   'output for those nodes will be invalid. '
-                                   'This is harmful for some applications, '
-                                   'causing silent performance regression. '
-                                   'Adding self-loop on the input graph by '
-                                   'calling `g = dgl.add_self_loop(g)` will resolve '
-                                   'the issue. Setting ``allow_zero_in_degree`` '
-                                   'to be `True` when constructing this module will '
-                                   'suppress the check and let the code run.')
+                                       'output for those nodes will be invalid. '
+                                       'This is harmful for some applications, '
+                                       'causing silent performance regression. '
+                                       'Adding self-loop on the input graph by '
+                                       'calling `g = dgl.add_self_loop(g)` will resolve '
+                                       'the issue. Setting ``allow_zero_in_degree`` '
+                                       'to be `True` when constructing this module will '
+                                       'suppress the check and let the code run.')
 
             if isinstance(feat, tuple):
                 src_prefix_shape = feat[0].shape[:-1]
                 dst_prefix_shape = feat[1].shape[:-1]
                 h_src = self.feat_drop(feat[0])
                 h_dst = self.feat_drop(feat[1])
+                # h_dst = feat[1]
                 if not hasattr(self, 'fc_src'):
                     feat_src = self.fc(h_src).view(
                         *src_prefix_shape, self._num_heads, self._out_feats)

@@ -70,11 +70,29 @@ def process_args(args):
             if "lr" in k or "weight_decay" in k or "tau" in k or "lambd" in k:
                 v = float(v)
             setattr(args, k, v)
-    if args.dataset not in ['cora', 'citeseer', 'pubmed']:
+    if args.dataset in ['cora', 'citeseer', 'pubmed']:
+        args.use_sampler = False
+        if args.fast_result and len(args.seeds) != 1:
+            args.seeds = range(1)  # train & eval only once
+    else:
         args.use_sampler = True
-    if args.ego_graph_file_path==None:
-        if args.dataset=="ogbn-arxiv":
-            args.ego_graph_file_path=os.path.join("lc_ego_graphs","ogbn-arxiv-lc-ego-graphs-256.pt")
+        args.seeds = range(1) if len(args.seeds) != 1 else args.seeds  # only pretrain and infer once
+        if args.fast_result and len(args.linear_prob_seeds) != 1:
+            args.linear_prob_seeds = range(1)
+    if args.ego_graph_file_path == None:
+        if args.dataset == "ogbn-arxiv":
+            args.ego_graph_file_path = os.path.join("lc_ego_graphs", "ogbn-arxiv-lc-ego-graphs-256.pt")
+        if args.dataset == "ogbn-products":
+            args.ego_graph_file_path = os.path.join("lc_ego_graphs", "ogbn-products-lc-ego-graphs-256.pt")
+    if args.pretrain_sampling_method == "clustergcn":
+        if args.cluster_gcn_cache_path == "":
+            args.cluster_gcn_cache_path = f"./tmp_{args.dataset}_{args.cluster_gcn_num_parts}_cluster_gcn.pkl"
+    if args.pretrain_sampling_method == "khop":
+        if isinstance(args.khop_fanouts, int):
+            args.khop_fanouts = [args.khop_fanouts] * args.num_layers
+        elif len(args.khop_fanouts) == 1:
+            args.khop_fanouts = args.khop_fanouts * args.num_layers
+
     return args
 
 
@@ -115,7 +133,10 @@ def show_occupied_memory():
 def build_args():
     parser = argparse.ArgumentParser(description="SSL-GNN-Train Settings")
     parser.add_argument("--model", type=str, default="graphmae")
-    parser.add_argument("--seeds", type=int, nargs="+", default=[i for i in range(1)])
+    parser.add_argument("--seeds", type=int, nargs="+", default=[i for i in range(20)],
+                        help="for small: times of pretraining-infering-trainingclassifier (default 0-19); for large: times of infering-trainingclassifier(*n) (default 0)")
+    parser.add_argument("--linear_prob_seeds", type=int, nargs="+", default=[i for i in range(10)],
+                        help="only used in large dataset, training times of classifier per inference")
     parser.add_argument("--dataset", type=str, default="cora")
     parser.add_argument("--device", type=int, default=-1)
 
@@ -149,6 +170,7 @@ def build_args():
     parser.add_argument("--remask_rate", type=float, default=0.5)
     parser.add_argument("--remask_method", type=str, default="random")
     parser.add_argument("--mask_method", type=str, default="random")
+    parser.add_argument("--mask_type", type=str, default="mask", help="`mask` or `drop`")
     parser.add_argument("--drop_edge_rate_f", type=float, default=0.0)
     parser.add_argument("--label_rate", type=float, default=1.0)
     parser.add_argument("--lam", type=float, default=1.0)
@@ -188,19 +210,26 @@ def build_args():
 
     # graph batch training settings
     parser.add_argument("--use_sampler", action="store_true", default=False)
-    parser.add_argument("--sampling_method", type=str, default="lc", help="sampling method, `lc` or `saint`")
+    parser.add_argument("--pretrain_sampling_method", type=str, default="lc", help="`lc` or `saint`")
+    parser.add_argument("--eval_sampling_method", type=str, default="lc", help="`lc` or `saint`")
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--batch_size_f", type=int, default=128)
     parser.add_argument("--batch_size_linear_prob", type=int, default=4096)
     parser.add_argument("--full_graph_forward", action="store_true", default=False)
+    # cluster-gcn
+    parser.add_argument("--cluster_gcn_batch_size", type=int, default=20, help="num of partitions per batch")
+    parser.add_argument("--cluster_gcn_num_parts", type=int, default=1000, help="partition num of nodes in ClusterGCN")
+    parser.add_argument("--cluster_gcn_cache_path", type=str, default="", help="path to cache cluster_gcn partitions")
     # saint
-    parser.add_argument("--num_iters", type=int, default=0, help="subgraphs per epoch")
     parser.add_argument("--saint_budget", type=int, default=10000, help="saint sampled subgraph nodes")
+    # khop
+    parser.add_argument("--khop_fanouts", type=int, nargs="+", default=[10], help="num of neighbors for each gnn layer")
     # local clustering
     parser.add_argument("--ego_graph_file_path", type=str, default=None)
     parser.add_argument("--data_dir", type=str, default="data")
 
     # other settings
+    parser.add_argument("--eval_first", action="store_true")
     parser.add_argument("--load_model", action="store_true")
     parser.add_argument("--load_model_path", type=str, default="")
     parser.add_argument("--save_model", action="store_true")
@@ -210,5 +239,7 @@ def build_args():
     parser.add_argument("--no_verbose", action="store_true", help="do not print process info")
     parser.add_argument("--eval_steps", type=int, default="200", help="epochs per evaluation during pretraining")
     parser.add_argument("--eval_nums", type=int, default="0", help="if set to non-zero, omit --eval_steps")
+    parser.add_argument("--fast_result", action="store_true", help="if set, only pretrain-infer-trainclassifier once")
+
     args = parser.parse_args()
     return args

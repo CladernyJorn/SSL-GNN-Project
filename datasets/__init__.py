@@ -1,0 +1,2 @@
+from datasets.small_dataset import load_dataset
+from datasets.ogbn_dataset import load_large_dataset

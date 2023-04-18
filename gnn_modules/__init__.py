@@ -1,18 +1,10 @@
 from functools import partial
 import torch
 import torch.nn as nn
-
-
-try:
-    from gin import GIN
-    from gat import GAT
-    from gcn import GCN
-    from dot_gat import DotGAT
-except:
-    from gnn_modules.gin import GIN
-    from gnn_modules.gat import GAT
-    from gnn_modules.gcn import GCN
-    from gnn_modules.dot_gat import DotGAT
+from gnn_modules.gin import GIN
+from gnn_modules.gat import GAT
+from gnn_modules.gcn import GCN
+from gnn_modules.dot_gat import DotGAT
 
 
 def setup_module(m_type, enc_dec, in_dim, num_hidden, out_dim, num_layers, dropout=0.2, activation='relu', residual=False, norm=None, nhead=4,

@@ -7,17 +7,18 @@ import os
 from models import build_model
 
 # self-made utils
-from utils.dataset import load_dataloader, LinearProbingDataLoader
+from utils.load_data import load_dataloader, LinearProbingDataLoader
 from utils.utils import (
     create_optimizer,
     set_random_seed,
-    build_args,
-    process_args,
     create_scheduler,
     LogisticRegression,
     accuracy,
     show_occupied_memory
 )
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 class ModelTrainer:
@@ -47,11 +48,10 @@ class ModelTrainer:
         # need to pretrain
         if not args.load_model:
             # get initial results
-            self.infer_embeddings()
-            if self._verbose:
+            if args.eval_first:
+                self.infer_embeddings()
                 print("initial test:")
-            self.evaluate()
-
+                self.evaluate()
             self.pretrain()
             model = self.model.cpu()
             if args.save_model:
@@ -68,20 +68,16 @@ class ModelTrainer:
             self.model.load_state_dict(torch.load(args.load_model_path))
 
         if self._verbose:
-            print("---- start finetuning / evaluation ----")
+            print("---- start evaluation ----")
         test_list = []
-        dev_list = []
         for i, seed in enumerate(args.seeds):
             if self._verbose:
                 print(f"####### Run{i} for seed {seed} #######")
             set_random_seed(seed)
             self.infer_embeddings()
-            dev_acc, test_acc = self.evaluate()
-            dev_list.append(dev_acc)
-            test_list.append(test_acc)
+            test_acc= self.evaluate()
+            test_list=test_list+test_acc
         final_test_acc, final_test_acc_std = np.mean(test_list), np.std(test_list)
-        final_dev_acc, final_dev_acc_std = np.mean(dev_list), np.std(dev_list)
-        print(f"# final-dev-acc: {final_dev_acc:.4f}±{final_dev_acc_std:.4f}", end="")
         print(f"# final-test-acc: {final_test_acc:.4f}±{final_test_acc_std:.4f}", end="")
 
         return final_test_acc
@@ -89,7 +85,8 @@ class ModelTrainer:
     def pretrain(self):
         args = self._args
         if self._verbose:
-            print(f"\n--- Start pretraining {args.model} model on {args.dataset} using {args.sampling_method}", end="")
+            print(
+                f"\n--- Start pretraining {args.model} model on {args.dataset} using {args.pretrain_sampling_method} sampling ---")
 
         self.model.to(self._device)
         for epoch in range(args.max_epoch):
@@ -102,17 +99,18 @@ class ModelTrainer:
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 3)
                 self.optimizer.step()
+                epoch_iter.set_description(f"# Epochs {epoch}: train_loss: {loss.item():.4f}")
+                losses.append(loss.item())
                 if self.scheduler is not None:
                     self.scheduler.step()
                 if args.model == "bgrl":
                     self.model.update_moving_average()  # bgrl uses EMA updating strategy
-                epoch_iter.set_description(f"# Epochs {epoch}: train_loss: {loss.item():.4f}")
             if self._verbose:
                 print(f"# Epoch {epoch} | train_loss: {np.mean(losses):.4f}, Memory: {show_occupied_memory():.2f} MB")
 
     def getloss(self, batch_g, epoch):
         args = self._args
-        if args.model == "graphmae2" and args.sampling_method == "lc":
+        if args.model == "graphmae2" and args.pretrain_sampling_method == "lc":
             if args.drop_edge_rate > 0:
                 batch_g, targets, _, node_idx, drop_g1, drop_g2 = batch_g
                 batch_g = batch_g.to(self._device)
@@ -123,13 +121,17 @@ class ModelTrainer:
             else:
                 batch_g, targets, _, node_idx = batch_g
                 batch_g = batch_g.to(self._device)
-                x = batch_g.ndata.pop("feat")
+                x = batch_g.ndata["feat"]
                 loss = self.model(batch_g, x, targets, epoch)
         else:
-            if args.sampling_method == "lc":
+            if args.pretrain_sampling_method == "lc":
                 batch_g, targets, _, node_idx = batch_g
+            elif args.pretrain_sampling_method == "saint":
+                batch_g = batch_g
+            elif args.pretrain_sampling_method == "khop":
+                input_nodes, output_nodes, batch_g = batch_g
             batch_g = batch_g.to(self._device)
-            x = batch_g.ndata.pop("feat")
+            x = batch_g.ndata["feat"]
             loss = self.model(batch_g, x)
         return loss
 
@@ -143,10 +145,16 @@ class ModelTrainer:
             self.model.eval()
             embeddings = []
             for batch in tqdm(self._eval_dataloader, desc="Infering..."):
-                batch_g, targets, _, node_idx = batch
-                batch_g = batch_g.to(self._device)
-                x = batch_g.ndata.pop("feat").to(self._device)
-                targets = targets.to(self._device)
+                if args.eval_sampling_method == "lc":
+                    batch_g, targets, _, node_idx = batch
+                    batch_g = batch_g.to(self._device)
+                    x = batch_g.ndata.pop("feat").to(self._device)
+                    targets = targets.to(self._device)
+                elif args.eval_sampling_method == "khop":
+                    input_nodes, output_nodes, batch_g = batch
+                    batch_g = batch_g.to(self._device)
+                    x = batch_g.ndata.pop("feat").to(self._device)
+                    targets = output_nodes.to(self._device)
                 batch_emb = self.model.embed(batch_g, x)[targets]
                 embeddings.append(batch_emb.cpu())
         self._embeddings = torch.cat(embeddings, dim=0)
@@ -154,9 +162,9 @@ class ModelTrainer:
         self._val_emb = self._embeddings[self._num_train:self._num_train + self._num_val]
         self._test_emb = self._embeddings[self._num_train + self._num_val:]
         if self._verbose:
-            print(f"train sample:{len(self._train_emb)}")
-            print(f"val sample  :{len(self._val_emb)}")
-            print(f"test sample :{len(self._test_emb)}")
+            print(f"train embeddings:{len(self._train_emb)}")
+            print(f"val embeddings  :{len(self._val_emb)}")
+            print(f"test embeddings :{len(self._test_emb)}")
 
     def evaluate(self, mute=True):
         args = self._args
@@ -182,13 +190,13 @@ class ModelTrainer:
             val_loader = [np.arange(len(val_emb))]
             test_loader = [np.arange(len(test_emb))]
         acc = []
-        for i, seed in enumerate(range(10)):
-            if not mute:
+        for i, seed in enumerate(args.linear_prob_seeds):
+            if self._verbose:
                 print(f"####### Run seed {seed} for LinearProbing...")
             set_random_seed(seed)
             best_val_acc = 0
             best_classifier = None
-            epoch_iter = tqdm(range(args.max_epoch_f)) if not mute else range(args.max_epoch_f)
+            epoch_iter = tqdm(range(args.max_epoch_f)) if self._verbose else range(args.max_epoch_f)
             for epoch in epoch_iter:
                 classifier.train()
                 classifier.to(self._device)
@@ -216,7 +224,7 @@ class ModelTrainer:
             acc.append(test_acc)
         if self._verbose:
             print(f"# test_acc: {np.mean(acc):.4f}±{np.std(acc):.4f}")
-        return np.mean(acc)
+        return acc
 
     def eval_forward(self, classifier, loader, label):
         pred_all = []
@@ -227,17 +235,3 @@ class ModelTrainer:
         pred = torch.cat(pred_all, dim=0)
         acc = accuracy(pred, label)
         return acc
-
-
-def train_eval(args):
-    trainer = ModelTrainer(args)
-    acc = trainer.train_eval()
-    return acc
-
-
-if __name__ == "__main__":
-    args = build_args()
-    args = process_args(args)
-    if not args.no_verbose:
-        print(args)
-    train_eval(args)

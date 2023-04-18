@@ -1,26 +1,43 @@
-# SSL-GNN-Learning-Project
+# SSL-GNN-Project
 A coding project that integrates 4 recent SSL methods applied in GNN. 
 
-- Supports **graphmae, grace, cca_ssg, bgrl** 
+- Supports **graphmae2, graphmae, grace, cca_ssg, bgrl** 
+- Supports transductive node classification on  **cora, citeseer, pubmed, ogbn (arxiv, products, papers100M)** datasets
+- Supported Sampling methods:
+  - **Saint** sampler for pretraining
 
-- Supports transductive node classification on  **cora, citeseer, pubmed** datasets
+  - **ClusterGCN** sampler for pretraining
 
-- Supports using **Saint Sampler** or pretraining on **full graph**
+  - **K-hop** sampler for pretraining and evaluation
+
+  - **LocalClustering** sampler for pretraining and evaluation
 
 - Provides a simple and easy to use interface to **add other baseline methods**
+- Provides **tuned parameter configs** for reproducing results on different baselines. Reproduced results for reference: using config files in `./configs/` and training on 1 3090GPU 
 
-- Provides **tuned parameter configs** for reproducing results on different baselines
+| full-graph | Cora            | CiteSeer        | PubMed          |
+| ---------- | --------------- | --------------- | --------------- |
+| GraphMAE2  |                 |                 |                 |
+| GraphMAE   | $84.08\pm0.59$  | $73.17\pm0.40$  | $80.98\pm 0.50$ |
+| Grace      | $81.48\pm0.67$  | $69.12\pm0.79$  | $81.07\pm0.52$  |
+| CCA-SSG    | $82.80\pm 0.74$ | $70.70\pm0.96$  | $80.06\pm0.77$  |
+| BGRL       | $81.36\pm 0.71$ | $70.08\pm 0.84$ | $80.18\pm0.77$  |
 
-  The reproduced results are as follows ( using config files in './configs/' and training on 1 3090GPU )
+| sampling  | ogbn-arxiv (Saint) | ogbn-arxiv (ClusterGCN) | ogbn-arxiv (ShallowKhop) | ogbn-arxiv (LocalClustering) |
+| --------- | ------------------ | ----------------------- | ------------------------ | ---------------------------- |
+| GraphMAE2 |                    |                         |                          |                              |
+| GraphMAE  | $84.08\pm0.59$     | $73.17\pm0.40$          | $80.98\pm 0.50$          |                              |
+| Grace     | $81.48\pm0.67$     | $69.12\pm0.79$          | $81.07\pm0.52$           |                              |
+| CCA-SSG   | $82.80\pm 0.74$    | $70.70\pm0.96$          | $80.06\pm0.77$           |                              |
+| BGRL      | $81.36\pm 0.71$    | $70.08\pm 0.84$         | $80.18\pm0.77$           |                              |
 
-|          | Cora            | CiteSeer        | PubMed          |
-| -------- | --------------- | --------------- | --------------- |
-| GraphMAE | $84.08\pm0.59$  | $73.17\pm0.40$  | $80.98\pm 0.50$ |
-| Grace    | $81.48\pm0.67$  | $69.12\pm0.79$  | $81.07\pm0.52$  |
-| CCA-SSG  | $82.80\pm 0.74$ | $70.70\pm0.96$  | $80.06\pm0.77$  |
-| BGRL     | $81.36\pm 0.71$ | $70.08\pm 0.84$ | $80.18\pm0.77$  |
+In order to make a fair comparison, all the results in the table above were evaluated using Local Clustering sampling.
 
 ## Methods included
+
+- **GraphMAE2**: A Decoding-Enhanced Masked Self-Supervised Graph Learner
+
+  https://arxiv.org/abs/2304.04779
 
 - **GraphMAE**: *Self-Supervised Masked Graph Autoencoders*
 
@@ -53,31 +70,67 @@ A coding project that integrates 4 recent SSL methods applied in GNN.
 ### Example Commands
 
 ```shell
-python main_ssl_gnn_train.py --model graphmae --dataset cora --encoder gat --decoder gat --device 0 --use_sampler --budget 500 --eval_nums 5 --num_iters 0
+python main_ssl_gnn_train.py --model graphmae --dataset cora --encoder gat --decoder gat --device 0 --eval_nums 5
 
 python main_ssl_gnn_train.py --model grace --dataset citeseer use_cfg
 
-python main_ssl_gnn_train.py --model cca_ssg --dataset pubmed --encoder gcn --device 0 --use_sampler --budget 500 --eval_nums 5 --num_iters 0
+python main_ssl_gnn_train.py --model graphmae2 --dataset ogbn-arxiv --use_cfg --device 0 --pretrain_sampling_method lc --eval_sampling_method lc
 
-python main_ssl_gnn_train.py --model bgrl --dataset cora --device 0 --use_cfg ----eval_nums 5 --no_verbose
+python main_ssl_gnn_train.py --model bgrl --dataset ogbn-arxiv --use_cfg --device 0 --pretrain_sampling_method saint --eval_sampling_method khop
 ```
 
 ### Important Arguments
 
 Command line parameter used to control training ( for all 4 methods ):
 
-- The `--model` argument should be one of [ **graphmae, grace, cca_ssg, bgrl** ].
-- The `--dataset` argument should be one of [ **cora, citeseer, pubmed** ].
+- The `--model` argument should be one of [ **graphmae2, graphmae, grace, cca_ssg, bgrl** ].
+- The `--dataset` argument should be one of [ **cora, citeseer, pubmed, ogbn-arxiv, ogbn-products, ogbn-papers100M** ].
 - The `--encoder`/ `--decoder` argument should be one of [ **gcn, gat, dotgat, gin, mlp** ].
 - The `--device` argument should be an integer ( default -1 for 'cpu' ).
 - The `--use_cfg` argument means using the configs to set training arguments (use `--use_cfg_path` to specify path).
-- The `--eval_nums` argument indicates how often the evaluation is performed during pretraining.
 
-If you want to use **Saint sampler** for mini-batch training on subgraph, you may add the arguments below. 
+#### **For Large scale graphs** 
 
-- ` --use_sampler`: use saint sampler for training instead of the default full graph training
-- `--budget`: batch-size, which is the number of nodes in the subgraph sampled by the sampler at one time
-- `--num_iters`:  The number of training iteration, if num_iters is 0, then use default $ N(graph_{full})\times epochs/ budget$
+For ogbn-arxiv, ogbn-products, ogbn-papers100M, pretraining and evaluation can only be done with mini-batch samplers.
+
+1. If you want to use **Saint sampler** for mini-batch pretraining on subgraph, you may add the arguments below. 
+
+   - ` --pretrain_sampling_method saint`: use saint sampler for training instead of the default full graph training
+
+   - `--sain_budget`: batch-size, which is the number of nodes in the subgraph sampled by the sampler at one time
+
+2. If you want to use **ClusterGCN sampler** for mini-batch pretraining on subgraph, you may add the arguments below. 
+
+   - ` --pretrain_sampling_method clustergcn`: use saint sampler for training instead of the default full graph training
+
+   - `--cluster_gcn_num_parts`: partition num of nodes in ClusterGCN Algorithms
+   - `--cluster_gcn_batch_size`:  denote how many partitions will be sampled per batch
+
+   Notice that Saint and ClusterGCN sampler can only be used for pretraining sampling method, you may also set eval samplers by using 
+
+   - `--eval_sampling_method`: should be one of [**lc, khop**], by default use **lc**.
+
+3. If you want to use **K-hop sampler** for mini-batch pretraining or evaluation, you may add the arguments below. 
+
+   - ` --pretrain_sampling_method khop`: use K-hop sampler for training instead of the default full graph training
+
+   - `--khop_fanouts`: number of neighbors for each gnn layers
+
+4. If you want to use **Local Clustering sampler** for mini-batch pretraining or evaluation, you may:
+
+   1. Install [localclustering](https://github.com/kfoynt/LocalGraphClustering) 
+
+   2. Generate local clusters before pretraining
+
+      - `python ./datasets/localclustering.py --dataset <your_dataset> --data_dir <path_to_data>`
+
+      By default, the program will load dataset from `./data/datasets` and save the generated local clusters to `./lc_ego_graphs`. 
+
+   3. Add the arguments below:
+
+      - ` --pretrain_sampling_method lc`: use local clustering sampler for training instead of the default full graph training
+
+      - `--ego_graph_file_path`: path of ego graph file that is generated in step 2
 
 
 
@@ -102,15 +155,15 @@ A brief description of the code base structure
 
 - `main_ssl_gnn_train.py`: Includes main functions for different methods ( using a trainer class to organize all training and evaluation functions ).
 - `./models/`: *'.py'* models for different baseline models
+- `./datasets/`: functions for preparing datasets from different graph data
 - `./utils/` : Common functional tools
-  - `dataset.py`: functions for preparing datasets and dataloaders
+  - `load_data.py`: functions for preparing dataloaders
   - `augmentation.py`: functions for graph augmentations which are implemented with dgl
   - `utils.py`: common functions for training and evaluation ( like `build_args()`, `build_model(args)`)
-
+  - `localclustering.py`:  generate ego graph files for Local Clustering sampler
 - `./gnn_modules/`: common graph encoders implemented with dgl
   - including `gcn.py, gat.py, gin.py, dot_gat.py`, dot_gat is an equivalent implementations for gat
 - `./configs/`: tuned model settings for different baselines on different dataset, use `--use_cfg` to load it 
-- `Effect_of_Saint_Sampler.ipynb`: a presentation document that tests the effects of the Saint Sampler method on the cora dataset of GRACE and GraphMAE
 
 ## References
 
@@ -142,6 +195,12 @@ This repository is built according to the following articles:
   author={Thakoor, Shantanu and Tallec, Corentin and Azar, Mohammad Gheshlaghi and Munos, R{\'e}mi and Veli{\v{c}}kovi{\'c}, Petar and Valko, Michal},
   booktitle={ICLR 2021 Workshop on Geometrical and Topological Representation Learning},
   year={2021}
+}
+@inproceedings{hou2023graphmae2,
+  title={GraphMAE2: A Decoding-Enhanced Masked Self-Supervised Graph Learner},
+  author={Zhenyu Hou, Yufei He, Yukuo Cen, Xiao Liu, Yuxiao Dong, Evgeny Kharlamov, Jie Tang},
+  booktitle={Proceedings of the ACM Web Conference 2023 (WWW’23)},
+  year={2023}
 }
 ```
 

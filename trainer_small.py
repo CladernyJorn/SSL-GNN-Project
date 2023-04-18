@@ -7,7 +7,7 @@ import torch
 from models import build_model
 
 # self-made utils
-from utils.dataset import load_dataset, load_dataloader
+from utils.load_data import load_dataset
 from utils.utils import (
     create_optimizer,
     set_random_seed,
@@ -177,17 +177,3 @@ class ModelTrainer:
             print(
                 f"--- TestAcc: {test_acc:.4f}, early-stopping-TestAcc: {estp_test_acc:.4f}, Best ValAcc: {best_val_acc:.4f} in epoch {best_val_epoch} --- ")
         return val_acc, best_val_acc, test_acc, estp_test_acc
-
-
-def train_eval(args):
-    trainer = ModelTrainer(args)
-    acc = trainer.train_eval()
-    return acc
-
-
-if __name__ == "__main__":
-    args = build_args()
-    args = process_args(args)
-    if not args.no_verbose:
-        print(args)
-    train_eval(args)

@@ -231,6 +231,7 @@ class model_graphmae2(nn.Module):
                 rep = origin_rep.clone()
                 rep, remask_nodes, rekeep_nodes = self.random_remask(use_g, rep, self._remask_rate)
                 recon = self.decoder(pre_use_g, rep)
+
                 x_init = x[mask_nodes]
                 x_rec = recon[mask_nodes]
                 loss_rec = self.criterion(x_init, x_rec)
@@ -290,6 +291,16 @@ class model_graphmae2(nn.Module):
     def encoding_mask_noise(self, g, x, mask_rate=0.3):
         num_nodes = g.num_nodes()
         perm = torch.randperm(num_nodes, device=x.device)
+        num_mask_nodes = int(mask_rate * num_nodes)
+
+        # exclude isolated nodes
+        # isolated_nodes = torch.where(g.in_degrees() <= 1)[0]
+        # mask_nodes = perm[: num_mask_nodes]
+        # mask_nodes = torch.index_fill(torch.full((num_nodes,), False, device=device), 0, mask_nodes, True)
+        # mask_nodes[isolated_nodes] = False
+        # keep_nodes = torch.where(~mask_nodes)[0]
+        # mask_nodes = torch.where(mask_nodes)[0]
+        # num_mask_nodes = mask_nodes.shape[0]
 
         # random masking
         num_mask_nodes = int(mask_rate * num_nodes)
