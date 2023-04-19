@@ -168,6 +168,8 @@ class ModelTrainer:
     def evaluate(self, mute=True):
         args = self._args
         train_emb, val_emb, test_emb = self._train_emb, self._val_emb, self._test_emb
+        print(train_emb[0])
+        print(train_emb[1])
         train_label = self._train_label.to(torch.long)
         val_label = self._val_label.to(torch.long)
         test_label = self._test_label.to(torch.long)

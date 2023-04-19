@@ -88,7 +88,7 @@ ogbn-arxiv:
   weight_decay: 0.06
   weight_decay_f: 1e-4
   max_epoch: 60
-  max_epoch_f: 1000
+  max_epoch_f: 100
   batch_size: 512
   batch_size_f: 512
   mask_rate: 0.5

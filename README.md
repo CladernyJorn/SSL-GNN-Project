@@ -17,19 +17,19 @@ A coding project that integrates 4 recent SSL methods applied in GNN.
 
 | full-graph | Cora            | CiteSeer        | PubMed          |
 | ---------- | --------------- | --------------- | --------------- |
-| GraphMAE2  |                 |                 |                 |
-| GraphMAE   | $84.08\pm0.59$  | $73.17\pm0.40$  | $80.98\pm 0.50$ |
-| Grace      | $81.48\pm0.67$  | $69.12\pm0.79$  | $81.07\pm0.52$  |
-| CCA-SSG    | $82.80\pm 0.74$ | $70.70\pm0.96$  | $80.06\pm0.77$  |
-| BGRL       | $81.36\pm 0.71$ | $70.08\pm 0.84$ | $80.18\pm0.77$  |
+| GraphMAE2  | $83.90\pm 0.58$ | $73.28\pm 0.46$ | $81.47\pm0.48$  |
+| GraphMAE   | $84.06\pm0.60$  | $73.11\pm0.33$  | $80.99\pm 0.53$ |
+| Grace      | $82.53\pm0.62$  | $68.57\pm1.70$  | $81.13\pm0.48$  |
+| CCA-SSG    | $82.78\pm 0.68$ | $70.64\pm0.96$  | $80.04\pm0.77$  |
+| BGRL       | $78.05\pm 0.79$ | $65.60\pm 0.96$ | $79.10\pm0.42$  |
 
 | sampling  | ogbn-arxiv (Saint) | ogbn-arxiv (ClusterGCN) | ogbn-arxiv (ShallowKhop) | ogbn-arxiv (LocalClustering) |
 | --------- | ------------------ | ----------------------- | ------------------------ | ---------------------------- |
 | GraphMAE2 |                    |                         |                          |                              |
-| GraphMAE  | $84.08\pm0.59$     | $73.17\pm0.40$          | $80.98\pm 0.50$          |                              |
-| Grace     | $81.48\pm0.67$     | $69.12\pm0.79$          | $81.07\pm0.52$           |                              |
-| CCA-SSG   | $82.80\pm 0.74$    | $70.70\pm0.96$          | $80.06\pm0.77$           |                              |
-| BGRL      | $81.36\pm 0.71$    | $70.08\pm 0.84$         | $80.18\pm0.77$           |                              |
+| GraphMAE  |                    |                         |                          |                              |
+| Grace     |                    |                         |                          |                              |
+| CCA-SSG   |                    |                         |                          |                              |
+| BGRL      |                    |                         |                          |                              |
 
 In order to make a fair comparison, all the results in the table above were evaluated using Local Clustering sampling.
 
