@@ -233,7 +233,7 @@ def build_args():
     parser.add_argument("--load_model", action="store_true")
     parser.add_argument("--load_model_path", type=str, default="")
     parser.add_argument("--save_model", action="store_true")
-    parser.add_argument("--save_model_path", type=str, default="")
+    parser.add_argument("--save_model_path", type=str, default="checkpoints")
     parser.add_argument("--use_cfg", action="store_true")
     parser.add_argument("--use_cfg_path", type=str, default="")
     parser.add_argument("--no_verbose", action="store_true", help="do not print process info")

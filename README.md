@@ -1,5 +1,5 @@
 # SSL-GNN-Project
-A coding project that integrates 4 recent SSL methods applied in GNN. 
+A coding project that integrates several recent SSL methods applied in GNN. 
 
 - Supports **graphmae2, graphmae, grace, cca_ssg, bgrl** 
 - Supports transductive node classification on  **cora, citeseer, pubmed, ogbn (arxiv, products, papers100M)** datasets
@@ -23,13 +23,13 @@ A coding project that integrates 4 recent SSL methods applied in GNN.
 | CCA-SSG    | $82.78\pm 0.68$ | $70.64\pm0.96$  | $80.04\pm0.77$  |
 | BGRL       | $78.05\pm 0.79$ | $65.60\pm 0.96$ | $79.10\pm0.42$  |
 
-| sampling  | ogbn-arxiv (Saint) | ogbn-arxiv (ClusterGCN) | ogbn-arxiv (ShallowKhop) | ogbn-arxiv (LocalClustering) |
-| --------- | ------------------ | ----------------------- | ------------------------ | ---------------------------- |
-| GraphMAE2 |                    |                         |                          |                              |
-| GraphMAE  |                    |                         |                          |                              |
-| Grace     |                    |                         |                          |                              |
-| CCA-SSG   |                    |                         |                          |                              |
-| BGRL      |                    |                         |                          |                              |
+| sampling  | ogbn-arxiv (Saint) | ogbn-arxiv (ClusterGCN) | ogbn-arxiv (ShallowKhop) | ogbn-arxiv (LocalClustering) | ogbn-arxiv (Random-Init) |
+| --------- | ------------------ | ----------------------- | ------------------------ | ---------------------------- | ------------------------ |
+| GraphMAE2 |                    |                         |                          | $71.79\pm0.12$               | $69.22\pm0.10$           |
+| GraphMAE  |                    |                         |                          | $70.21\pm0.18$               |                          |
+| Grace     |                    |                         |                          | $68.59\pm0.12$               |                          |
+| CCA-SSG   |                    |                         |                          | $67.28\pm0.16$               |                          |
+| BGRL      |                    |                         |                          | $67.35\pm0.09$               |                          |
 
 In order to make a fair comparison, all the results in the table above were evaluated using Local Clustering sampling.
 
@@ -97,11 +97,11 @@ For ogbn-arxiv, ogbn-products, ogbn-papers100M, pretraining and evaluation can o
 
    - ` --pretrain_sampling_method saint`: use saint sampler for training instead of the default full graph training
 
-   - `--sain_budget`: batch-size, which is the number of nodes in the subgraph sampled by the sampler at one time
+   - `--saint_budget`: batch-size, which is the number of nodes in the subgraph sampled by the sampler at one time
 
 2. If you want to use **ClusterGCN sampler** for mini-batch pretraining on subgraph, you may add the arguments below. 
 
-   - ` --pretrain_sampling_method clustergcn`: use saint sampler for training instead of the default full graph training
+   - ` --pretrain_sampling_method clustergcn`
 
    - `--cluster_gcn_num_parts`: partition num of nodes in ClusterGCN Algorithms
    - `--cluster_gcn_batch_size`:  denote how many partitions will be sampled per batch
@@ -112,7 +112,7 @@ For ogbn-arxiv, ogbn-products, ogbn-papers100M, pretraining and evaluation can o
 
 3. If you want to use **K-hop sampler** for mini-batch pretraining or evaluation, you may add the arguments below. 
 
-   - ` --pretrain_sampling_method khop`: use K-hop sampler for training instead of the default full graph training
+   - ` --pretrain_sampling_method khop`
 
    - `--khop_fanouts`: number of neighbors for each gnn layers
 
@@ -128,7 +128,7 @@ For ogbn-arxiv, ogbn-products, ogbn-papers100M, pretraining and evaluation can o
 
    3. Add the arguments below:
 
-      - ` --pretrain_sampling_method lc`: use local clustering sampler for training instead of the default full graph training
+      - ` --pretrain_sampling_method lc`
 
       - `--ego_graph_file_path`: path of ego graph file that is generated in step 2
 

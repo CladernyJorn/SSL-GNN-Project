@@ -5,8 +5,7 @@ import torch.nn.functional as F
 import dgl
 import dgl.function as fn
 from dgl.utils import expand_as_pair
-
-from graphmae.utils import create_activation
+from gnn_modules.module_utils import create_activation,create_norm
 
 
 class GCN(nn.Module):
@@ -90,9 +89,7 @@ class GraphConv(nn.Module):
             if self._in_feats != self._out_feats:
                 self.res_fc = nn.Linear(
                     self._in_feats, self._out_feats, bias=False)
-                print("! Linear Residual !")
             else:
-                print("Identity Residual ")
                 self.res_fc = nn.Identity()
         else:
             self.register_buffer('res_fc', None)

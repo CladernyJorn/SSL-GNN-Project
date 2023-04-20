@@ -168,8 +168,6 @@ class ModelTrainer:
     def evaluate(self, mute=True):
         args = self._args
         train_emb, val_emb, test_emb = self._train_emb, self._val_emb, self._test_emb
-        print(train_emb[0])
-        print(train_emb[1])
         train_label = self._train_label.to(torch.long)
         val_label = self._val_label.to(torch.long)
         test_label = self._test_label.to(torch.long)
@@ -184,7 +182,7 @@ class ModelTrainer:
             optimizer = create_optimizer("adam", classifier, args.lr_f, args.weight_decay_f)
             train_loader = LinearProbingDataLoader(np.arange(len(train_emb)), train_emb, train_label,
                                                    batch_size=args.batch_size_linear_prob, num_workers=4,
-                                                   persistent_workers=True, shuffle=False)
+                                                   persistent_workers=True, shuffle=True)
             val_loader = LinearProbingDataLoader(np.arange(len(val_emb)), val_emb, val_label,
                                                  batch_size=args.batch_size_linear_prob,
                                                  num_workers=4, persistent_workers=True, shuffle=False)

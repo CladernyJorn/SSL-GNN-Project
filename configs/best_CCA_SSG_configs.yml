@@ -73,7 +73,7 @@ ogbn-arxiv:
   in_drop: 0.4
   attn_drop: 0
   linear_prob: True
-  optimizer: adam
+  optimizer: adamw
   scheduler: True
   dfr: 0.3
   der: 0.3
@@ -82,7 +82,6 @@ ogbn-arxiv:
   batch_size_f: 256
   residual: True
   norm: layernorm
-  pretrain_sampling_method: lc
 ogbn-products:
   lr: 0.0001
   lr_f: 0.01
@@ -98,7 +97,7 @@ ogbn-products:
   in_drop: 0.4
   attn_drop: 0
   linear_prob: True
-  optimizer: adam
+  optimizer: adamw
   scheduler: True
   dfr: 0.3
   der: 0.3
@@ -107,7 +106,6 @@ ogbn-products:
   batch_size_f: 256
   residual: True
   norm: layernorm
-  pretrain_sampling_method: lc
 ogbn-papers100M:
   lr: 0.0001
   lr_f: 0.01
@@ -123,7 +121,7 @@ ogbn-papers100M:
   in_drop: 0.4
   attn_drop: 0
   linear_prob: True
-  optimizer: adam
+  optimizer: adamw
   scheduler: True
   dfr: 0.3
   der: 0.3
@@ -132,4 +130,3 @@ ogbn-papers100M:
   batch_size_f: 256
   residual: True
   norm: layernorm
-  pretrain_sampling_method: lc

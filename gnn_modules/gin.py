@@ -1,11 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 import dgl.function as fn
 from dgl.utils import expand_as_pair
-
-from graphmae.utils import create_activation, NormLayer, create_norm
+from gnn_modules.module_utils import create_activation,create_norm
 
 
 class GIN(nn.Module):

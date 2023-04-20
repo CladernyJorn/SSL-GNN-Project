@@ -77,7 +77,7 @@ ogbn-arxiv:
   max_epoch: 60
   max_epoch_f: 1000
   mask_rate: 0.5
-  drop_edge_rate: 0.5
+  drop_edge_rate: 0
   num_layers: 3
   encoder: gat
   decoder: gat
@@ -105,7 +105,7 @@ ogbn-products:
   max_epoch: 20
   max_epoch_f: 1000
   mask_rate: 0.5
-  drop_edge_rate: 0.5
+  drop_edge_rate: 0
   num_layers: 3
   encoder: gat
   decoder: gat
@@ -133,7 +133,7 @@ ogbn-papers100M:
   max_epoch: 10
   max_epoch_f: 1000
   mask_rate: 0.5
-  drop_edge_rate: 0.5
+  drop_edge_rate: 0
   num_layers: 3
   encoder: gat
   decoder: gat

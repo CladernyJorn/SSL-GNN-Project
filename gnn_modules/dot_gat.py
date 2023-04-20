@@ -1,11 +1,9 @@
 import torch
 from torch import nn
-
 import dgl.function as fn
 from dgl.nn.functional import edge_softmax
 from dgl.utils import expand_as_pair
-
-from graphmae.utils import create_activation
+from gnn_modules.module_utils import create_activation,create_norm
 
 
 class DotGAT(nn.Module):

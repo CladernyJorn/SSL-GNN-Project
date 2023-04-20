@@ -70,9 +70,9 @@ pubmed:
 ogbn-arxiv:
   lr: 0.001
   lr_f: 0.01
-  num_hidden: 1024
-  num_heads: 8
-  num_layers: 4
+  num_hidden: 256
+  num_heads: 4
+  num_layers: 2
   weight_decay: 1e-5
   weight_decay_f: 1e-4
   max_epoch: 60
@@ -83,14 +83,14 @@ ogbn-arxiv:
   attn_drop: 0.1
   linear_prob: True
   optimizer: adam
-  scheduler: False
+  scheduler: True
   num_proj_hidden: 512
   drop_edge_rate_1: 0.4
   drop_edge_rate_2: 0.1
   drop_feature_rate_1: 0.0
   drop_feature_rate_2: 0.2
   tau: 0.7
-  batch_size: 512
+  batch_size: 64
   batch_size_f: 256
   residual: True
   norm: layernorm
@@ -104,12 +104,12 @@ ogbn-products:
   weight_decay_f: 1e-4
   max_epoch: 20
   max_epoch_f: 1000
-  encoder: gcn
+  encoder: gat
   activation: relu
   in_drop: 0.5
   attn_drop: 0.1
   linear_prob: True
-  optimizer: adam
+  optimizer: adamw
   scheduler: False
   num_proj_hidden: 512
   drop_edge_rate_1: 0.4
@@ -123,20 +123,21 @@ ogbn-products:
   norm: layernorm
 ogbn-papers100M:
   lr: 0.001
-  lr_f: 0.001
+  lr_f: 0.01
   num_hidden: 1024
-  num_heads: 4
-  num_out_heads: 1
+  num_heads: 8
   num_layers: 4
-  weight_decay: 0.05
-  weight_decay_f: 0
-  max_epoch: 10
+  weight_decay: 1e-5
+  weight_decay_f: 1e-4
+  max_epoch: 20
   max_epoch_f: 1000
-  encoder: gcn
+  encoder: gat
   activation: relu
   in_drop: 0.5
   attn_drop: 0.1
   linear_prob: True
+  optimizer: adamw
+  scheduler: False
   num_proj_hidden: 512
   drop_edge_rate_1: 0.4
   drop_edge_rate_2: 0.1

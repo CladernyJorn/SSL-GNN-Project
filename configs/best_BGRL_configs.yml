@@ -86,11 +86,10 @@ ogbn-arxiv:
   drop_edge_rate_2: 0.5
   drop_feature_rate_1: 0.5
   drop_feature_rate_2: 0.5
-  batch_size: 512
+  batch_size: 256
   batch_size_f: 256
   residual: True
   norm: layernorm
-  pretrain_sampling_method: lc
 ogbn-products:
   lr: 0.001
   lr_f: 0.01
@@ -117,7 +116,6 @@ ogbn-products:
   batch_size_f: 256
   residual: True
   norm: layernorm
-  pretrain_sampling_method: lc
 ogbn-papers100M:
   lr: 0.001
   lr_f: 0.01
@@ -144,4 +142,3 @@ ogbn-papers100M:
   batch_size_f: 256
   residual: True
   norm: layernorm
-  pretrain_sampling_method: lc

@@ -88,7 +88,7 @@ ogbn-arxiv:
   weight_decay: 0.06
   weight_decay_f: 1e-4
   max_epoch: 60
-  max_epoch_f: 100
+  max_epoch_f: 1000
   batch_size: 512
   batch_size_f: 512
   mask_rate: 0.5
@@ -101,7 +101,7 @@ ogbn-arxiv:
   in_drop: 0.2
   loss_fn: sce
   drop_edge_rate: 0.5
-  optimizer: adam
+  optimizer: adamw
   alpha_l: 6
   scheduler: True
   remask_method: random
@@ -133,7 +133,7 @@ ogbn-products:
   in_drop: 0.2
   loss_fn: sce
   drop_edge_rate: 0.5
-  optimizer: adam
+  optimizer: adamw
   alpha_l: 3
   scheduler: True
   remask_method: random
@@ -165,7 +165,7 @@ ogbn-papers100M:
   in_drop: 0.2
   loss_fn: sce
   drop_edge_rate: 0.5
-  optimizer: adam
+  optimizer: adamw
   alpha_l: 2
   scheduler: True
   remask_method: random

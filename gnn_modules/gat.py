@@ -5,7 +5,7 @@ from dgl.ops import edge_softmax
 import dgl.function as fn
 from dgl.utils import expand_as_pair
 import tqdm
-from graphmae.utils import create_activation
+from gnn_modules.module_utils import create_activation,create_norm
 
 
 class GAT(nn.Module):
