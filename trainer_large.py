@@ -25,7 +25,6 @@ class ModelTrainer:
 
     def __init__(self, args):
         self._args = args
-        self._verbose = not args.no_verbose
         self._device = args.device if args.device >= 0 else "cpu"
         self._use_sampler = args.use_sampler
 
@@ -36,8 +35,7 @@ class ModelTrainer:
                                            "full_graph_forward") and args.full_graph_forward and not args.linear_prob
         memory_before_load = show_occupied_memory()
         self._args.num_features, self._pretrain_dataloader = load_dataloader("pretrain", args.dataset, self._args)
-        if self._verbose:
-            print(f"Data memory usage: {show_occupied_memory() - memory_before_load:.2f} MB")
+        print(f"Data memory usage: {show_occupied_memory() - memory_before_load:.2f} MB")
         self.model = build_model(self._args)
         self.optimizer = create_optimizer(args.optimizer, self.model, args.lr, args.weight_decay)
         self.scheduler = None
@@ -55,10 +53,9 @@ class ModelTrainer:
             model = self.model.cpu()
             if args.save_model:
                 os.makedirs(args.save_model_path, exist_ok=True)
-                model_name = f"{args.model}_{args.dataset}_checkpoint.pt"
+                model_name = f"{args.model}_{args.dataset}_{args.pretrain_sampling_method}_checkpoint.pt"
                 save_path = os.path.join(args.save_model_path, model_name)
-                if self._verbose:
-                    print(f"Saveing model to {save_path}")
+                print(f"Saveing model to {save_path}")
                 torch.save(model.state_dict(), save_path)
 
         # no need to pretrain, eval directly
@@ -66,12 +63,10 @@ class ModelTrainer:
             print(f"Loading model from {args.load_model_path}")
             self.model.load_state_dict(torch.load(args.load_model_path))
 
-        if self._verbose:
-            print("---- start evaluation ----")
+        print("---- start evaluation ----")
         test_list = []
         for i, seed in enumerate(args.seeds):
-            if self._verbose:
-                print(f"####### Run{i} for seed {seed} #######")
+            print(f"####### Run{i} for seed {seed} #######")
             set_random_seed(seed)
             self.infer_embeddings()
             test_acc = self.evaluate()
@@ -83,9 +78,7 @@ class ModelTrainer:
 
     def pretrain(self):
         args = self._args
-        if self._verbose:
-            print(
-                f"\n--- Start pretraining {args.model} model on {args.dataset} using {args.pretrain_sampling_method} sampling ---")
+        print(f"\n--- Start pretraining {args.model} model on {args.dataset} using {args.pretrain_sampling_method} sampling ---")
 
         self.model.to(self._device)
         for epoch in range(args.max_epoch):
@@ -104,8 +97,7 @@ class ModelTrainer:
                     self.scheduler.step()
                 if args.model == "bgrl":
                     self.model.update_moving_average()  # bgrl uses EMA updating strategy
-            if self._verbose:
-                print(f"# Epoch {epoch} | train_loss: {np.mean(losses):.4f}, Memory: {show_occupied_memory():.2f} MB")
+            print(f"# Epoch {epoch} | train_loss: {np.mean(losses):.4f}, Memory: {show_occupied_memory():.2f} MB")
 
     def getloss(self, batch_g, epoch):
         args = self._args
@@ -160,12 +152,11 @@ class ModelTrainer:
         self._train_emb = self._embeddings[:self._num_train]
         self._val_emb = self._embeddings[self._num_train:self._num_train + self._num_val]
         self._test_emb = self._embeddings[self._num_train + self._num_val:]
-        if self._verbose:
-            print(f"train embeddings:{len(self._train_emb)}")
-            print(f"val embeddings  :{len(self._val_emb)}")
-            print(f"test embeddings :{len(self._test_emb)}")
+        print(f"train embeddings:{len(self._train_emb)}")
+        print(f"val embeddings  :{len(self._val_emb)}")
+        print(f"test embeddings :{len(self._test_emb)}")
 
-    def evaluate(self, mute=True):
+    def evaluate(self):
         args = self._args
         train_emb, val_emb, test_emb = self._train_emb, self._val_emb, self._test_emb
         train_label = self._train_label.to(torch.long)
@@ -173,8 +164,7 @@ class ModelTrainer:
         test_label = self._test_label.to(torch.long)
         acc = []
         for i, seed in enumerate(args.linear_prob_seeds):
-            if self._verbose:
-                print(f"####### Run seed {seed} for LinearProbing...")
+            print(f"####### Run seed {seed} for LinearProbing...")
             set_random_seed(seed)
             criterion = torch.nn.CrossEntropyLoss()
             classifier = LogisticRegression(self._train_emb.shape[1], int(train_label.max().item() + 1)).to(
@@ -191,7 +181,7 @@ class ModelTrainer:
                                                   num_workers=4, persistent_workers=True, shuffle=False)
             best_val_acc = 0
             best_classifier = None
-            epoch_iter = tqdm(range(args.max_epoch_f)) if self._verbose else range(args.max_epoch_f)
+            epoch_iter = tqdm(range(args.max_epoch_f)) if not args.no_verbose else range(args.max_epoch_f)
             for epoch in epoch_iter:
                 classifier.train()
                 classifier.to(self._device)
@@ -210,18 +200,16 @@ class ModelTrainer:
                 if val_acc >= best_val_acc:
                     best_val_acc = val_acc
                     best_classifier = copy.deepcopy(classifier)
-                if self._verbose:
+                if not args.no_verbose:
                     epoch_iter.set_description(
                         f"# Epoch: {epoch}, train_loss:{loss.item(): .4f}, val_acc:{val_acc:.4f}")
 
             best_classifier.eval()
             with torch.no_grad():
                 test_acc = self.eval_forward(best_classifier, test_loader, test_label)
-            if self._verbose:
-                print(f"# test_acc: {test_acc:.4f}")
+            print(f"# test_acc: {test_acc:.4f}")
             acc.append(test_acc)
-        if self._verbose:
-            print(f"# test_acc: {np.mean(acc):.4f}±{np.std(acc):.4f}")
+        print(f"# test_acc: {np.mean(acc):.4f}±{np.std(acc):.4f}")
         return acc
 
     def eval_forward(self, classifier, loader, label):

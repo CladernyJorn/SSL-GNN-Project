@@ -15,23 +15,32 @@ A coding project that integrates several recent SSL methods applied in GNN.
 - Provides a simple and easy to use interface to **add other baseline methods**
 - Provides **tuned parameter configs** for reproducing results on different baselines. Reproduced results for reference: using config files in `./configs/` and training on 1 3090GPU 
 
-| full-graph | Cora            | CiteSeer        | PubMed          |
-| ---------- | --------------- | --------------- | --------------- |
+| full-graph |      Cora       |    CiteSeer     |     PubMed      |
+| :--------: | :-------------: | :-------------: | :-------------: |
 | GraphMAE2  | $83.90\pm 0.58$ | $73.28\pm 0.46$ | $81.47\pm0.48$  |
-| GraphMAE   | $84.06\pm0.60$  | $73.11\pm0.33$  | $80.99\pm 0.53$ |
-| Grace      | $82.53\pm0.62$  | $68.57\pm1.70$  | $81.13\pm0.48$  |
-| CCA-SSG    | $82.78\pm 0.68$ | $70.64\pm0.96$  | $80.04\pm0.77$  |
-| BGRL       | $78.05\pm 0.79$ | $65.60\pm 0.96$ | $79.10\pm0.42$  |
+|  GraphMAE  | $84.06\pm0.60$  | $73.11\pm0.33$  | $80.99\pm 0.53$ |
+|   Grace    | $82.53\pm0.62$  | $68.57\pm1.70$  | $81.13\pm0.48$  |
+|  CCA-SSG   | $82.78\pm 0.68$ | $70.64\pm0.96$  | $80.04\pm0.77$  |
+|    BGRL    | $78.05\pm 0.79$ | $65.60\pm 0.96$ | $79.10\pm0.42$  |
+|    GGD     | $82.40\pm0.82$  |                 |                 |
 
 | sampling  | ogbn-arxiv (Saint) | ogbn-arxiv (ClusterGCN) | ogbn-arxiv (ShallowKhop) | ogbn-arxiv (LocalClustering) | ogbn-arxiv (Random-Init) |
-| --------- | ------------------ | ----------------------- | ------------------------ | ---------------------------- | ------------------------ |
-| GraphMAE2 |                    |                         |                          | $71.79\pm0.12$               | $69.22\pm0.10$           |
-| GraphMAE  |                    |                         |                          | $70.21\pm0.18$               |                          |
-| Grace     |                    |                         |                          | $68.59\pm0.12$               |                          |
-| CCA-SSG   |                    |                         |                          | $67.28\pm0.16$               |                          |
-| BGRL      |                    |                         |                          | $67.35\pm0.09$               |                          |
+| :-------: | :----------------: | :---------------------: | :----------------------: | :--------------------------: | :----------------------: |
+| GraphMAE2 |   $70.43\pm0.09$   |     $69.77\pm0.21$      |      $70.96\pm0.10$      |        $71.79\pm0.12$        |      $69.22\pm0.10$      |
+| GraphMAE  |   $70.54\pm0.20$   |     $71.52\pm0.19$      |      $70.77\pm0.35$      |        $70.70\pm0.18$        |      $70.35\pm0.20$      |
+|   Grace   |   $67.65\pm0.16$   |     $65.58\pm0.20$      |      $67.84\pm0.15$      |        $68.59\pm0.12$        |      $58.61\pm0.30$      |
+|  CCA-SSG  |                    |                         |                          |        $67.28\pm0.16$        |      $69.91\pm0.19$      |
+|   BGRL    |                    |                         |                          |        $67.35\pm0.09$        |      $70.32\pm0.21$      |
 
-In order to make a fair comparison, all the results in the table above were evaluated using Local Clustering sampling.
+| sampling  | ogbn-products (Saint) | ogbn-products (ClusterGCN) | ogbn-products (ShallowKhop) | ogbn-products (LocalClustering) | ogbn-products (Random-Init) |
+| :-------: | :-------------------: | :------------------------: | :-------------------------: | :-----------------------------: | :-------------------------: |
+| GraphMAE2 |    $70.43\pm0.09$     |       $69.77\pm0.21$       |                             |         $71.79\pm0.12$          |       $69.22\pm0.10$        |
+| GraphMAE  |    $70.54\pm0.20$     |       $71.52\pm0.19$       |       $70.77\pm0.35$        |         $70.70\pm0.18$          |       $70.35\pm0.20$        |
+|   Grace   |    $67.65\pm0.16$     |       $65.58\pm0.20$       |       $67.84\pm0.15$        |         $68.59\pm0.12$          |       $58.61\pm0.30$        |
+|  CCA-SSG  |                       |                            |                             |         $67.28\pm0.16$          |       $69.91\pm0.19$        |
+|   BGRL    |                       |                            |                             |         $67.35\pm0.09$          |       $70.32\pm0.21$        |
+
+In order to make a fair comparison, all the results in the two tables (ogbn datasets) above are evaluated using Local Clustering sampling.
 
 ## Methods included
 

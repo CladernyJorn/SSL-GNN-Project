@@ -79,7 +79,7 @@ def load_dataloader(load_type, dataset_name, args):
             batch_size=batch_size,
             shuffle=shuffle,
             drop_last=False,
-            persistent_workers=True,
+            persistent_workers=False,
             num_workers=8
         )
     else:

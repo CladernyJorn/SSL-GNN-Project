@@ -1,15 +1,9 @@
-try:
-    from graphmae import model_graphmae
-    from graphmae2 import model_graphmae2
-    from grace import model_grace
-    from cca_ssg import model_cca_ssg
-    from bgrl import model_bgrl
-except:
-    from models.graphmae import model_graphmae
-    from models.graphmae2 import model_graphmae2
-    from models.grace import model_grace
-    from models.cca_ssg import model_cca_ssg
-    from models.bgrl import model_bgrl
+from models.graphmae import model_graphmae
+from models.graphmae2 import model_graphmae2
+from models.grace import model_grace
+from models.cca_ssg import model_cca_ssg
+from models.bgrl import model_bgrl
+from models.ggd import model_ggd
 
 
 def build_model(args):
@@ -122,6 +116,22 @@ def build_model(args):
             drop_edge_rate_2=args.drop_edge_rate_2,
             drop_feature_rate_1=args.drop_feature_rate_1,
             drop_feature_rate_2=args.drop_feature_rate_2,
+        )
+    elif args.model == 'ggd':
+        return model_ggd(
+            in_dim=args.num_features,
+            num_hidden=args.num_hidden,
+            num_layers=args.num_layers,
+            nhead=args.num_heads,
+            activation=args.activation,
+            feat_drop=args.in_drop,
+            attn_drop=args.attn_drop,
+            negative_slope=args.negative_slope,
+            residual=args.residual,
+            norm=args.norm,
+            encoder_type=args.encoder,
+            num_proj_layers=args.num_proj_layers,
+            drop_feat=args.drop_feat
         )
     else:
         assert False and "Invalid model"

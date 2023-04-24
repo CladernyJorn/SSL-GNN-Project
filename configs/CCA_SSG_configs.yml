@@ -4,11 +4,11 @@ cora:
   num_hidden: 512
   num_heads: 4
   num_layers: 2
-  weight_decay: 1e-5
+  weight_decay: 0
   weight_decay_f: 1e-4
-  max_epoch: 100
+  max_epoch: 50
   max_epoch_f: 300
-  encoder: gat
+  encoder: gcn
   activation: prelu
   in_drop: 0.5
   attn_drop: 0
@@ -16,17 +16,17 @@ cora:
   optimizer: adam
   scheduler: True
   dfr: 0.5
-  der: 0.3
-  lambd: 1e-2
+  der: 0.5
+  lambd: 1e-3
 citeseer:
-  lr: 0.0001
+  lr: 0.001
   lr_f: 0.01
   num_hidden: 512
   num_heads: 4
-  num_layers: 2
-  weight_decay: 2e-4
+  num_layers: 1
+  weight_decay: 0
   weight_decay_f: 1e-4
-  max_epoch: 200
+  max_epoch: 20
   max_epoch_f: 300
   encoder: gat
   activation: prelu
@@ -35,18 +35,18 @@ citeseer:
   linear_prob: True
   optimizer: adam
   scheduler: True
-  dfr: 0.3
-  der: 0.3
-  lambd: 1e-2
+  dfr: 0.5
+  der: 0.5
+  lambd: 5e-4
 pubmed:
-  lr: 0.0001
+  lr: 0.001
   lr_f: 0.01
   num_hidden: 512
   num_heads: 4
   num_layers: 2
   weight_decay: 1e-4
   weight_decay_f: 1e-4
-  max_epoch: 500
+  max_epoch: 100
   max_epoch_f: 300
   encoder: gat
   activation: prelu
@@ -55,9 +55,9 @@ pubmed:
   linear_prob: True
   optimizer: adam
   scheduler: True
-  dfr: 0.3
-  der: 0.3
-  lambd: 1e-2
+  dfr: 0.5
+  der: 0.5
+  lambd: 1e-3
 ogbn-arxiv:
   lr: 0.0001
   lr_f: 0.01

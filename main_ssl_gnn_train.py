@@ -1,7 +1,7 @@
 import trainer_large
 import trainer_small
-from utils.utils import build_args, process_args
-
+from utils.utils import build_args, process_args,Logger
+import sys
 
 def train_eval(args):
     if args.dataset in ['cora', 'citeseer', 'pubmed']:
@@ -19,6 +19,6 @@ def train_eval(args):
 if __name__ == "__main__":
     args = build_args()
     args = process_args(args)
-    if not args.no_verbose:
-        print(args)
+    sys.stdout = Logger(filename=args.logging_path,no_verbose=args.no_verbose)
+    print(args)
     train_eval(args)

@@ -7,6 +7,7 @@ import argparse
 import yaml
 import psutil
 import os
+import sys
 
 
 def create_optimizer(opt, model, lr, weight_decay):
@@ -52,15 +53,17 @@ def process_args(args):
         path = args.use_cfg_path
         if path == "":
             if args.model == "graphmae":
-                path = "./configs/best_GraphMAE_configs.yml"
+                path = "./configs/GraphMAE_configs.yml"
             elif args.model == "graphmae2":
-                path = "./configs/best_GraphMAE2_configs.yml"
+                path = "./configs/GraphMAE2_configs.yml"
             elif args.model == "grace":
-                path = "./configs/best_Grace_configs.yml"
+                path = "./configs/Grace_configs.yml"
             elif args.model == "cca_ssg":
-                path = "./configs/best_CCA_SSG_configs.yml"
+                path = "./configs/CCA_SSG_configs.yml"
             elif args.model == "bgrl":
-                path = "./configs/best_BGRL_configs.yml"
+                path = "./configs/BGRL_configs.yml"
+            elif args.model == "ggd":
+                path = "./configs/GGD_configs.yml"
         with open(path, "r") as f:
             configs = yaml.load(f, yaml.FullLoader)
         if args.dataset not in configs:
@@ -70,6 +73,10 @@ def process_args(args):
             if "lr" in k or "weight_decay" in k or "tau" in k or "lambd" in k:
                 v = float(v)
             setattr(args, k, v)
+    if not args.logging_path.endswith('.logs'):
+        os.makedirs(args.logging_path, exist_ok=True)
+        args.logging_path = os.path.join(args.logging_path,
+                                         f"{args.model}_{args.dataset}_{args.pretrain_sampling_method}.log")
     if args.dataset in ['cora', 'citeseer', 'pubmed']:
         args.use_sampler = False
         if args.fast_result and len(args.seeds) != 1:
@@ -94,6 +101,21 @@ def process_args(args):
             args.khop_fanouts = args.khop_fanouts * args.num_layers
 
     return args
+
+
+class Logger(object):
+    def __init__(self, filename="Default.log", no_verbose=False):
+        self.terminal = sys.stdout
+        self.log = open(filename, "a")
+        self.no_verbose = no_verbose
+
+    def write(self, message):
+        if not self.no_verbose:
+            self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        pass
 
 
 def set_random_seed(seed):
@@ -142,7 +164,7 @@ def build_args():
 
     # just for passing arguments, no need to set/change
     parser.add_argument("--num_features", type=int, default=-1)
-
+    parser.add_argument("--logging_path", type=str, default='logs', help='path to save .log')
     # encoder parameters
     parser.add_argument("--num_heads", type=int, default=4, help="number of hidden attention heads")
     parser.add_argument("--num_layers", type=int, default=2, help="number of hidden layers")
@@ -193,6 +215,10 @@ def build_args():
     # parameters of BGRL (4 drop rate use Grace's arguments)
     parser.add_argument('--pred_hid', type=int, default=256)
     parser.add_argument("--moving_average_decay", type=float, default=0.99)
+
+    # parameters of ggd
+    parser.add_argument('--drop_feat', type=float, default=0.1)
+    parser.add_argument("--num_proj_layers", type=int, default=1, help="number of project linear layers")
 
     # pretraining settings
     parser.add_argument("--optimizer", type=str, default="adam")

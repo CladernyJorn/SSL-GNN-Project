@@ -2,17 +2,12 @@ import copy
 import numpy as np
 from tqdm import tqdm
 import torch
-
-# models
 from models import build_model
-
 # self-made utils
 from utils.load_data import load_dataset
 from utils.utils import (
     create_optimizer,
     set_random_seed,
-    build_args,
-    process_args,
     create_scheduler,
     LogisticRegression,
     accuracy
@@ -23,7 +18,6 @@ class ModelTrainer:
 
     def __init__(self, args):
         self._args = args
-        self._verbose = not args.no_verbose
         self._device = args.device if args.device >= 0 else "cpu"
         self._use_sampler = args.use_sampler
 
@@ -33,8 +27,7 @@ class ModelTrainer:
         self._graph, (self.num_features, self.num_classes) = load_dataset(args.dataset)
         self._eval_steps = args.eval_steps if args.eval_nums == 0 else args.max_epoch // args.eval_nums
         self._args.num_features = self.num_features
-        if self._verbose:
-            print(f"Data: {self._graph}")
+        print(f"Data: {self._graph}")
         print(
             f"\n--- Start pretraining {args.model} model on {args.dataset} ---")
         test_list = []
@@ -53,7 +46,7 @@ class ModelTrainer:
             # need to pretrain
             if not args.load_model:
                 # get initial results
-                if self._verbose and args.eval_first:
+                if args.eval_first:
                     self.infer_embeddings()
                     dev_acc, estp_dev_acc, test_acc, estp_test_acc = self.evaluate()
                     print("initial test acc: {:.4f}".format(test_acc))
@@ -89,10 +82,8 @@ class ModelTrainer:
 
     def pretrain(self):
         args = self._args
-        if self._verbose:
-            print(f"\n--- Start pretraining {args.model} model on {args.dataset} ", end="")
-
-        epoch_iter = tqdm(range(args.max_epoch))if self._verbose else range(args.max_epoch)
+        print(f"\n--- Start pretraining {args.model} model on {args.dataset} ---")
+        epoch_iter = tqdm(range(args.max_epoch)) if not args.no_verbose else range(args.max_epoch)
         dev_best = 0
         test_best = 0
         self.model.to(self._device)
@@ -113,17 +104,16 @@ class ModelTrainer:
                 self.scheduler.step()
             if args.model == "bgrl":
                 self.model.update_moving_average()  # bgrl uses EMA updating strategy
-            if self._verbose:
+            if not args.no_verbose:
                 epoch_iter.set_description(f"# Epochs {epoch}: train_loss: {loss.item():.4f}")
-                if (epoch + 1) % self._eval_steps == 0:
-                    self.infer_embeddings()
-                    dev_acc, estp_dev_acc, test_acc, estp_test_acc = self.evaluate()
-                    if dev_best < dev_acc:
-                        dev_best = dev_acc
-                        test_best = test_acc
-                    print("validation: {:.4f}, test: {:.4f} \n".format(dev_acc, test_acc))
-        if self._verbose:
-            print(f"validation: {dev_best:.4f}, test: {test_best:.4f}")
+            if (epoch + 1) % self._eval_steps == 0:
+                self.infer_embeddings()
+                dev_acc, estp_dev_acc, test_acc, estp_test_acc = self.evaluate()
+                if dev_best < dev_acc:
+                    dev_best = dev_acc
+                    test_best = test_acc
+                print("validation: {:.4f}, test: {:.4f} \n".format(dev_acc, test_acc))
+        print(f"validation: {dev_best:.4f}, test: {test_best:.4f}")
 
     def infer_embeddings(self):  # preparing embeddings and labels
         self.model.eval()
@@ -174,7 +164,6 @@ class ModelTrainer:
         with torch.no_grad():
             pred = best_classifier(self._embeddings)
             estp_test_acc = accuracy(pred[self._test_mask], self._labels[self._test_mask])
-        if self._verbose:
-            print(
-                f"--- TestAcc: {test_acc:.4f}, early-stopping-TestAcc: {estp_test_acc:.4f}, Best ValAcc: {best_val_acc:.4f} in epoch {best_val_epoch} --- ")
+        print(
+            f"--- TestAcc: {test_acc:.4f}, early-stopping-TestAcc: {estp_test_acc:.4f}, Best ValAcc: {best_val_acc:.4f} in epoch {best_val_epoch} --- ")
         return val_acc, best_val_acc, test_acc, estp_test_acc
