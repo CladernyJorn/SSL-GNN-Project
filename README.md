@@ -1,7 +1,7 @@
 # SSL-GNN-Project
 A coding project that integrates several recent SSL methods applied in GNN. 
 
-- Supports **graphmae2, graphmae, grace, cca_ssg, bgrl** 
+- Supports **graphmae2, graphmae, grace, cca_ssg, bgrl, ggd**
 - Supports transductive node classification on  **cora, citeseer, pubmed, ogbn (arxiv, products, papers100M)** datasets
 - Supported Sampling methods:
   - **Saint** sampler for pretraining
@@ -63,6 +63,10 @@ In order to make a fair comparison, all the results in the two tables (ogbn data
 - **CCA-SSG**: *From Canonical Correlation Analysis to Self-supervised Graph Neural Networks*
 
   ( https://proceedings.neurips.cc/paper/2021/hash/00ac8ed3b4327bdd4ebbebcb2ba10a00-Abstract.html )
+  
+- **GGD**: Rethinking and Scaling Up Graph Contrastive Learning: An Extremely Efficient Approach with Group Discrimination
+
+  （ https://arxiv.org/abs/2206.01535 ）
 
 
 ## Dependencies
@@ -178,7 +182,7 @@ A brief description of the code base structure
 
 This repository is built according to the following articles: 
 
-```ll
+```latex
 @inproceedings{hou2022graphmae,
   title={GraphMAE: Self-Supervised Masked Graph Autoencoders},
   author={Hou, Zhenyu and Liu, Xiao and Cen, Yukuo and Dong, Yuxiao and Yang, Hongxia and Wang, Chunjie and Tang, Jie},
@@ -210,6 +214,12 @@ This repository is built according to the following articles:
   author={Zhenyu Hou, Yufei He, Yukuo Cen, Xiao Liu, Yuxiao Dong, Evgeny Kharlamov, Jie Tang},
   booktitle={Proceedings of the ACM Web Conference 2023 (WWW’23)},
   year={2023}
+}
+@inproceeding{zheng2022rethinking,
+  title={Rethinking and Scaling Up Graph Contrastive Learning: An Extremely Efficient Approach with Group Discrimination},
+  author={Zheng, Yizhen and Pan, Shirui and Lee, Vincent Cs and Zheng, Yu and Yu, Philip S},
+  booktitle={Advances in Neural Information Processing Systems},
+  year={2022}
 }
 ```
 
