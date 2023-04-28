@@ -49,34 +49,47 @@ def get_current_lr(optimizer):
 
 
 def process_args(args):
-    if args.use_cfg:
-        path = args.use_cfg_path
-        if path == "":
-            if args.model == "graphmae":
-                path = "./configs/GraphMAE_configs.yml"
-            elif args.model == "graphmae2":
-                path = "./configs/GraphMAE2_configs.yml"
-            elif args.model == "grace":
-                path = "./configs/Grace_configs.yml"
-            elif args.model == "cca_ssg":
-                path = "./configs/CCA_SSG_configs.yml"
-            elif args.model == "bgrl":
-                path = "./configs/BGRL_configs.yml"
-            elif args.model == "ggd":
-                path = "./configs/GGD_configs.yml"
-        with open(path, "r") as f:
-            configs = yaml.load(f, yaml.FullLoader)
-        if args.dataset not in configs:
-            return args
-        configs = configs[args.dataset]
-        for k, v in configs.items():
-            if "lr" in k or "weight_decay" in k or "tau" in k or "lambd" in k:
-                v = float(v)
-            setattr(args, k, v)
-    if not args.logging_path.endswith('.logs'):
-        os.makedirs(args.logging_path, exist_ok=True)
-        args.logging_path = os.path.join(args.logging_path,
-                                         f"{args.model}_{args.dataset}_{args.pretrain_sampling_method}.log")
+    if not args.supervised:
+        if args.use_cfg:
+            path = args.use_cfg_path
+            if path == "":
+                if args.model == "graphmae":
+                    path = "./configs/GraphMAE_configs.yml"
+                elif args.model == "graphmae2":
+                    path = "./configs/GraphMAE2_configs.yml"
+                elif args.model == "grace":
+                    path = "./configs/Grace_configs.yml"
+                elif args.model == "cca_ssg":
+                    path = "./configs/CCA_SSG_configs.yml"
+                elif args.model == "bgrl":
+                    path = "./configs/BGRL_configs.yml"
+                elif args.model == "ggd":
+                    path = "./configs/GGD_configs.yml"
+            with open(path, "r") as f:
+                configs = yaml.load(f, yaml.FullLoader)
+            if args.dataset not in configs:
+                return args
+            configs = configs[args.dataset]
+            for k, v in configs.items():
+                if "lr" in k or "weight_decay" in k or "tau" in k or "lambd" in k:
+                    v = float(v)
+                setattr(args, k, v)
+    else:
+        # supervised on experimental dataset
+        print("load configs")
+        if args.use_cfg:
+            path = args.use_cfg_path
+            if path == "":
+                path = "./configs/exp_configs.yml"
+            with open(path, "r") as f:
+                configs = yaml.load(f, yaml.FullLoader)
+            if args.model not in configs:
+                raise NotImplementedError(f"Supervised {args.model} has no configs!")
+            configs = configs[args.model]
+            for k, v in configs.items():
+                if "lr" in k or "weight_decay" in k or "tau" in k or "lambd" in k:
+                    v = float(v)
+                setattr(args, k, v)
     if args.dataset in ['cora', 'citeseer', 'pubmed']:
         args.use_sampler = False
         if args.fast_result and len(args.seeds) != 1:
@@ -86,6 +99,11 @@ def process_args(args):
         args.seeds = range(1) if len(args.seeds) != 1 else args.seeds  # only pretrain and infer once
         if args.fast_result and len(args.linear_prob_seeds) != 1:
             args.linear_prob_seeds = range(1)
+
+    if not args.logging_path.endswith('.logs'):
+        os.makedirs(args.logging_path, exist_ok=True)
+        args.logging_path = os.path.join(args.logging_path,
+                                         f"{args.model}_{args.dataset}_{args.pretrain_sampling_method}.log")
     if args.ego_graph_file_path == None:
         if args.dataset == "ogbn-arxiv":
             args.ego_graph_file_path = os.path.join("lc_ego_graphs", "ogbn-arxiv-lc-ego-graphs-256.pt")
@@ -161,6 +179,11 @@ def build_args():
                         help="only used in large dataset, training times of classifier per inference")
     parser.add_argument("--dataset", type=str, default="cora")
     parser.add_argument("--device", type=int, default=-1)
+
+    # supervised experimental training
+    parser.add_argument("--supervised", action="store_true", default=False)
+    parser.add_argument("--num_class", type=int, default=-1)
+
 
     # just for passing arguments, no need to set/change
     parser.add_argument("--num_features", type=int, default=-1)

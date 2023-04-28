@@ -86,7 +86,7 @@ class ModelTrainer:
             losses = []
             for batch_g in epoch_iter:
                 self.model.train()
-                loss = self.getloss(batch_g, epoch)
+                loss = self.get_loss(batch_g, epoch)
                 self.optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 3)
@@ -99,7 +99,7 @@ class ModelTrainer:
                     self.model.update_moving_average()  # bgrl uses EMA updating strategy
             print(f"# Epoch {epoch} | train_loss: {np.mean(losses):.4f}, Memory: {show_occupied_memory():.2f} MB")
 
-    def getloss(self, batch_g, epoch):
+    def get_loss(self, batch_g, epoch):
         args = self._args
         if args.model == "graphmae2" and args.pretrain_sampling_method == "lc":
             if args.drop_edge_rate > 0:

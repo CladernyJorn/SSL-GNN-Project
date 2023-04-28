@@ -143,6 +143,8 @@ ogbn-products:
   num_remasking: 3
   residual: True
   norm: layernorm
+  cluster_gcn_batch_size: 1
+  cluster_gcn_num_parts: 50000
 ogbn-papers100M:
   lr: 0.001
   lr_f: 0.001

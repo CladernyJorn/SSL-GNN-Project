@@ -4,6 +4,8 @@ from models.grace import model_grace
 from models.cca_ssg import model_cca_ssg
 from models.bgrl import model_bgrl
 from models.ggd import model_ggd
+from gnn_modules import Supervised_gnn_classification
+import torch
 
 
 def build_model(args):
@@ -132,6 +134,21 @@ def build_model(args):
             encoder_type=args.encoder,
             num_proj_layers=args.num_proj_layers,
             drop_feat=args.drop_feat
+        )
+    elif args.model in ['gcn', 'gat','dotgat', 'gin',"mlp"]:
+        return Supervised_gnn_classification(
+            m_type=args.model,
+            in_dim=args.num_features,
+            num_hidden=args.num_hidden,
+            out_dim=args.num_class,
+            num_layers=args.num_layers,
+            nhead=args.num_heads,
+            activation=args.activation,
+            dropout=args.in_drop,
+            attn_drop=args.attn_drop,
+            negative_slope=args.negative_slope,
+            residual=args.residual,
+            norm=args.norm
         )
     else:
         assert False and "Invalid model"

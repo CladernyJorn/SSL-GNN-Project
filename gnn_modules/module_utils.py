@@ -1,6 +1,8 @@
 from functools import partial
 import torch
 import torch.nn as nn
+
+
 def create_norm(name):
     if name == "layernorm":
         return nn.LayerNorm
@@ -10,6 +12,7 @@ def create_norm(name):
         return partial(NormLayer, norm_type="groupnorm")
     else:
         return nn.Identity
+
 
 def create_activation(name):
     if name == "relu":
@@ -24,6 +27,7 @@ def create_activation(name):
         return nn.ELU()
     else:
         raise NotImplementedError(f"{name} is not implemented.")
+
 
 class NormLayer(nn.Module):
     def __init__(self, hidden_dim, norm_type):
@@ -65,3 +69,4 @@ class NormLayer(nn.Module):
         std = ((std.T / batch_list).T + 1e-6).sqrt()
         std = std.repeat_interleave(batch_list, dim=0)
         return self.weight * sub / std + self.bias
+
