@@ -17,7 +17,7 @@ GRAPH_DICT = {
 }
 
 
-def load_dataset(dataset_name):
+def load_small_dataset(dataset_name):
     assert dataset_name in GRAPH_DICT, f"Unknown full graph dataset: {dataset_name}."
     if dataset_name.startswith("ogbn"):
         dataset = GRAPH_DICT[dataset_name](dataset_name)

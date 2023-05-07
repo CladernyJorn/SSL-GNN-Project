@@ -4,12 +4,13 @@ from utils.utils import build_args, process_args,Logger
 import sys
 
 def train_eval(args):
-    if args.dataset in ['cora', 'citeseer', 'pubmed']:
-        trainer = trainer_small.ModelTrainer(args)
+
+    if args.dataset.startswith("ogbn"):
+        trainer = trainer_large.ModelTrainer(args)
         acc = trainer.train_eval()
         return acc
-    elif args.dataset.startswith("ogbn"):
-        trainer = trainer_large.ModelTrainer(args)
+    elif args.dataset in ['cora', 'citeseer', 'pubmed','amazon_experimental_dataset']:
+        trainer = trainer_small.ModelTrainer(args)
         acc = trainer.train_eval()
         return acc
     else:
@@ -19,6 +20,8 @@ def train_eval(args):
 if __name__ == "__main__":
     args = build_args()
     args = process_args(args)
-    sys.stdout = Logger(filename=args.logging_path,no_verbose=args.no_verbose)
+    logger = Logger(no_verbose=args.no_verbose)
+    logger.set_log_path(filename=args.logging_path)
+    sys.stdout = logger
     print(args)
     train_eval(args)

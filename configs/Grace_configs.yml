@@ -117,7 +117,7 @@ ogbn-products:
   drop_feature_rate_1: 0.0
   drop_feature_rate_2: 0.2
   tau: 0.7
-  batch_size: 512
+  batch_size: 64
   batch_size_f: 256
   residual: True
   norm: layernorm

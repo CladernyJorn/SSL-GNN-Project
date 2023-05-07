@@ -31,14 +31,16 @@ A coding project that integrates several recent SSL methods applied in GNN.
 |   Grace   |   $67.65\pm0.16$   |     $65.58\pm0.20$      |      $67.84\pm0.15$      |        $68.59\pm0.12$        |      $58.61\pm0.30$      |
 |  CCA-SSG  |                    |                         |                          |        $67.28\pm0.16$        |      $69.91\pm0.19$      |
 |   BGRL    |                    |                         |                          |        $67.35\pm0.09$        |      $70.32\pm0.21$      |
+|    GGD    |                    |                         |                          |       $70.26\pm 0.13$        |      $70.55\pm0.18$      |
 
 | sampling  | ogbn-products (LocalClustering) | ogbn-products (Random-Init) |
 | :-------: | :-----------------------------: | :-------------------------: |
 | GraphMAE2 |         $81.02\pm0.07$          |       $75.96\pm0.21$        |
 | GraphMAE  |         $76.71\pm0.28$          |       $75.46\pm0.57$        |
-|   Grace   |         $68.59\pm0.12$          |       $58.61\pm0.30$        |
+|   Grace   |         $80.61\pm0.46$          |       $75.22\pm0.28$        |
 |  CCA-SSG  |         $73.56\pm0.29$          |       $74.19\pm0.37$        |
-|   BGRL    |         $67.35\pm0.09$          |       $70.32\pm0.21$        |
+|   BGRL    |                                 |       $76.16\pm0.53$        |
+|    GGD    |         $73.41\pm0.31$          |       $72.44\pm0.24$        |
 
 In order to make a fair comparison, all the results in the two tables (ogbn datasets) above are evaluated using Local Clustering sampling.
 

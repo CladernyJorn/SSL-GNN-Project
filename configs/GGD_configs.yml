@@ -63,8 +63,8 @@ ogbn-arxiv:
   num_layers: 1
   weight_decay: 0
   weight_decay_f: 0
-  max_epoch: 500
-  max_epoch_f: 300
+  max_epoch: 20
+  max_epoch_f: 1000
   encoder: gcn
   activation: prelu
   in_drop: 0.4
@@ -82,8 +82,8 @@ ogbn-products:
   num_layers: 1
   weight_decay: 0
   weight_decay_f: 0
-  max_epoch: 500
-  max_epoch_f: 300
+  max_epoch: 20
+  max_epoch_f: 1000
   encoder: gcn
   activation: prelu
   in_drop: 0.4
@@ -101,8 +101,8 @@ ogbn-papers100M:
   num_layers: 1
   weight_decay: 0
   weight_decay_f: 0
-  max_epoch: 500
-  max_epoch_f: 300
+  max_epoch: 20
+  max_epoch_f: 1000
   encoder: gcn
   activation: prelu
   in_drop: 0.4

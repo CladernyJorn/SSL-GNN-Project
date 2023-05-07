@@ -112,7 +112,7 @@ class Supervised_gnn_classification(nn.Module):
                 residual=residual,
                 norm=norm
             )
-            self.classifier = torch.nn.Linear(enc_num_hidden, out_dim)
+            self.classifier = torch.nn.Linear(num_hidden, out_dim)
         elif m_type == "mlp":
             self.classifier = torch.nn.Sequential(
                 torch.nn.Linear(in_dim, num_hidden),

@@ -44,6 +44,28 @@ def create_scheduler(args, optimizer):
         return optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=scheduler)
 
 
+def create_optimizer_learn_feature(opt, model, lr, weight_decay, in_feature):
+    opt_lower = opt.lower()
+    parameters = [{'params': model.parameters()}, {'params': in_feature}]
+    opt_args = dict(lr=lr, weight_decay=weight_decay)
+    opt_split = opt_lower.split("_")
+    opt_lower = opt_split[-1]
+
+    if opt_lower == "adam":
+        return optim.Adam(parameters, **opt_args)
+    elif opt_lower == "adamw":
+        return optim.AdamW(parameters, **opt_args)
+    elif opt_lower == "adadelta":
+        return optim.Adadelta(parameters, **opt_args)
+    elif opt_lower == "radam":
+        return optim.RAdam(parameters, **opt_args)
+    elif opt_lower == "sgd":
+        opt_args["momentum"] = 0.9
+        return optim.SGD(parameters, **opt_args)
+    else:
+        assert False and "Invalid optimizer"
+
+
 def get_current_lr(optimizer):
     return optimizer.state_dict()["param_groups"][0]["lr"]
 
@@ -90,7 +112,7 @@ def process_args(args):
                 if "lr" in k or "weight_decay" in k or "tau" in k or "lambd" in k:
                     v = float(v)
                 setattr(args, k, v)
-    if args.dataset in ['cora', 'citeseer', 'pubmed']:
+    if args.dataset in ['cora', 'citeseer', 'pubmed','amazon_experimental_dataset']:
         args.use_sampler = False
         if args.fast_result and len(args.seeds) != 1:
             args.seeds = range(1)  # train & eval only once
@@ -100,7 +122,7 @@ def process_args(args):
         if args.fast_result and len(args.linear_prob_seeds) != 1:
             args.linear_prob_seeds = range(1)
 
-    if not args.logging_path.endswith('.logs'):
+    if not args.logging_path.endswith('.log'):
         os.makedirs(args.logging_path, exist_ok=True)
         args.logging_path = os.path.join(args.logging_path,
                                          f"{args.model}_{args.dataset}_{args.pretrain_sampling_method}.log")
@@ -122,15 +144,22 @@ def process_args(args):
 
 
 class Logger(object):
-    def __init__(self, filename="Default.log", no_verbose=False):
+    def __init__(self, no_verbose=False):
         self.terminal = sys.stdout
-        self.log = open(filename, "a")
+        self.log = None
         self.no_verbose = no_verbose
+
+    def set_log_path(self, filename="Default.log"):
+        print(f"Writing logs to {filename}")
+        if self.log is not None:
+            self.log.close()
+        self.log = open(filename, "a")
 
     def write(self, message):
         if not self.no_verbose:
             self.terminal.write(message)
         self.log.write(message)
+        sys.stdout.flush()
 
     def flush(self):
         pass
@@ -183,7 +212,8 @@ def build_args():
     # supervised experimental training
     parser.add_argument("--supervised", action="store_true", default=False)
     parser.add_argument("--num_class", type=int, default=-1)
-
+    parser.add_argument("--classification", action="store_true", default=False)
+    parser.add_argument("--regression", action="store_true", default=False)
 
     # just for passing arguments, no need to set/change
     parser.add_argument("--num_features", type=int, default=-1)
@@ -249,10 +279,10 @@ def build_args():
     parser.add_argument("--warmup_steps", type=int, default=-1)
     parser.add_argument("--max_epoch", type=int, default=200, help="number of training epochs")
     parser.add_argument("--lr", type=float, default=0.005, help="learning rate")
+    parser.add_argument("--weight_decay", type=float, default=5e-4, help="weight decay")
 
     # eval settings
     parser.add_argument("--linear_prob", action="store_true", default=False)
-    parser.add_argument("--weight_decay", type=float, default=5e-4, help="weight decay")
     parser.add_argument("--max_epoch_f", type=int, default=30)
     parser.add_argument("--lr_f", type=float, default=0.001, help="learning rate for evaluation")
     parser.add_argument("--weight_decay_f", type=float, default=0.0, help="weight decay for evaluation")

@@ -112,7 +112,7 @@ ogbn-products:
   drop_edge_rate_2: 0.5
   drop_feature_rate_1: 0.5
   drop_feature_rate_2: 0.5
-  batch_size: 512
+  batch_size: 64
   batch_size_f: 256
   residual: True
   norm: layernorm
