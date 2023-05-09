@@ -13,16 +13,16 @@ A coding project that integrates several recent SSL methods applied in GNN.
   - **LocalClustering** sampler for pretraining and evaluation
 
 - Provides a simple and easy to use interface to **add other baseline methods**
-- Provides **tuned parameter configs** for reproducing results on different baselines. Reproduced results for reference: using config files in `./configs/` and training on 1 3090GPU 
+- Provides **tuned parameter configs** for reproducing results on different baselines. Reproduced results for reference: using config files in `./configs/` and training on 1 3090GPU. (If not mentioned, `gat` is the default encoder.)
 
-| full-graph |      Cora       |    CiteSeer     |     PubMed      |
-| :--------: | :-------------: | :-------------: | :-------------: |
-| GraphMAE2  | $83.90\pm 0.58$ | $73.28\pm 0.46$ | $81.47\pm0.48$  |
-|  GraphMAE  | $84.06\pm0.60$  | $73.11\pm0.33$  | $80.99\pm 0.53$ |
-|   Grace    | $82.53\pm0.62$  | $68.57\pm1.70$  | $81.13\pm0.48$  |
-|  CCA-SSG   | $82.78\pm 0.68$ | $70.64\pm0.96$  | $80.04\pm0.77$  |
-|    BGRL    | $78.05\pm 0.79$ | $65.60\pm 0.96$ | $79.10\pm0.42$  |
-|    GGD     | $82.40\pm0.82$  | $66.78\pm1.00$  | $78.89\pm 0.68$ |
+| full-graph |          Cora           |        CiteSeer        |         PubMed          |
+| :--------: | :---------------------: | :--------------------: | :---------------------: |
+| GraphMAE2  |     $83.90\pm 0.58$     |    $73.28\pm 0.46$     |     $81.47\pm0.48$      |
+|  GraphMAE  |     $84.06\pm0.60$      |     $73.11\pm0.33$     |     $80.99\pm 0.53$     |
+|   Grace    | $82.53\pm0.62$ (`GCN`)  |     $69.66\pm1.21$     | $81.13\pm0.48$ (`GCN`)  |
+|  CCA-SSG   | $83.77\pm 0.57$ (`GCN`) | $72.73\pm1.01$ (`GCN`) | $80.39\pm0.64$ (`GCN`)  |
+|    BGRL    |     $81.23\pm 0.50$     |    $71.44\pm 0.76$     |     $79.10\pm0.42$      |
+|    GGD     | $83.09\pm0.63$ (`GCN`)  | $73.03\pm0.60$ (`GCN`) | $80.29\pm 0.43$ (`GCN`) |
 
 | sampling  | ogbn-arxiv (Saint) | ogbn-arxiv (ClusterGCN) | ogbn-arxiv (ShallowKhop) | ogbn-arxiv (LocalClustering) | ogbn-arxiv (Random-Init) |
 | :-------: | :----------------: | :---------------------: | :----------------------: | :--------------------------: | :----------------------: |
@@ -39,7 +39,7 @@ A coding project that integrates several recent SSL methods applied in GNN.
 | GraphMAE  |         $76.71\pm0.28$          |       $75.46\pm0.57$        |
 |   Grace   |         $80.61\pm0.46$          |       $75.22\pm0.28$        |
 |  CCA-SSG  |         $73.56\pm0.29$          |       $74.19\pm0.37$        |
-|   BGRL    |                                 |       $76.16\pm0.53$        |
+|   BGRL    |         $67.16\pm0.07$          |       $76.16\pm0.53$        |
 |    GGD    |         $73.41\pm0.31$          |       $72.44\pm0.24$        |
 
 In order to make a fair comparison, all the results in the two tables (ogbn datasets) above are evaluated using Local Clustering sampling.

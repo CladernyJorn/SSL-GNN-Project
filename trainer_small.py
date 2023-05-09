@@ -113,7 +113,7 @@ class ModelTrainer:
                     dev_best = dev_acc
                     test_best = test_acc
                 print("validation: {:.4f}, test: {:.4f} \n".format(dev_acc, test_acc))
-        print(f"validation: {dev_best:.4f}, test: {test_best:.4f}")
+        # print(f"validation: {dev_best:.4f}, test: {test_best:.4f}")
 
     def infer_embeddings(self):  # preparing embeddings and labels
         self.model.eval()

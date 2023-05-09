@@ -4,12 +4,12 @@ cora:
   num_hidden: 1024
   num_heads: 8
   num_out_heads: 1
-  num_layers: 2
   weight_decay: 2e-4
   weight_decay_f: 1e-4
   max_epoch: 2000
   max_epoch_f: 300
   mask_rate: 0.5
+  num_layers: 2
   encoder: gat
   decoder: gat
   activation: prelu

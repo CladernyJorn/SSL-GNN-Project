@@ -1,6 +1,6 @@
 cora:
   lr: 0.001
-  lr_f: 0.05
+  lr_f: 0.01
   num_hidden: 512
   num_heads: 4
   num_layers: 1
@@ -10,105 +10,121 @@ cora:
   max_epoch_f: 300
   encoder: gcn
   activation: prelu
-  in_drop: 0.4
-  attn_drop: 0.1
+  in_drop: 0
+  attn_drop: 0
   linear_prob: True
-  optimizer: adamw
+  optimizer: adam
   scheduler: True
-  drop_feat: 0
+  drop_feat: 0.1
   num_proj_layer: 1
 citeseer:
-  lr: 0.001
-  lr_f: 0.05
+  lr: 0.0005
+  lr_f: 0.01
   num_hidden: 512
   num_heads: 4
   num_layers: 1
-  weight_decay: 0
-  weight_decay_f: 0
-  max_epoch: 500
+  weight_decay: 1e-3
+  weight_decay_f: 1e-2
+  max_epoch: 1000
   max_epoch_f: 300
   encoder: gcn
   activation: prelu
-  in_drop: 0.4
-  attn_drop: 0.1
+  in_drop: 0
+  attn_drop: 0
   linear_prob: True
-  optimizer: adamw
+  optimizer: adam
   scheduler: True
   drop_feat: 0.1
   num_proj_layer: 1
 pubmed:
-  lr: 0.001
+  lr: 0.0005
   lr_f: 0.05
   num_hidden: 512
   num_heads: 4
   num_layers: 1
-  weight_decay: 0
-  weight_decay_f: 0
-  max_epoch: 500
+  weight_decay: 1e-5
+  weight_decay_f: 1e-3
+  max_epoch: 1500
   max_epoch_f: 300
   encoder: gcn
   activation: prelu
-  in_drop: 0.4
-  attn_drop: 0.1
+  in_drop: 0
+  attn_drop: 0
   linear_prob: True
-  optimizer: adamw
+  optimizer: adam
   scheduler: True
   drop_feat: 0.1
   num_proj_layer: 1
 ogbn-arxiv:
-  lr: 0.001
-  lr_f: 0.05
-  num_hidden: 512
-  num_heads: 4
-  num_layers: 1
-  weight_decay: 0
-  weight_decay_f: 0
-  max_epoch: 20
+  lr: 0.0025
+  lr_f: 0.005
+  num_hidden: 1024
+  num_heads: 8
+  weight_decay: 0.06
+  weight_decay_f: 1e-4
+  max_epoch: 60
   max_epoch_f: 1000
-  encoder: gcn
+  batch_size: 512
+  batch_size_f: 512
+  num_layers: 4
+  encoder: gat
   activation: prelu
-  in_drop: 0.4
   attn_drop: 0.1
   linear_prob: True
+  in_drop: 0.2
   optimizer: adamw
   scheduler: True
-  drop_feat: 0.1
+  residual: True
+  norm: layernorm
+  drop_feat: 0.5
   num_proj_layer: 1
 ogbn-products:
-  lr: 0.001
-  lr_f: 0.05
-  num_hidden: 512
+  lr: 0.002
+  lr_f: 0.001
+  num_hidden: 1024
   num_heads: 4
-  num_layers: 1
-  weight_decay: 0
+  num_layers: 4
+  weight_decay: 0.04
   weight_decay_f: 0
   max_epoch: 20
   max_epoch_f: 1000
-  encoder: gcn
+  batch_size: 512
+  batch_size_f: 512
+  encoder: gat
   activation: prelu
-  in_drop: 0.4
-  attn_drop: 0.1
+  attn_drop: 0.2
   linear_prob: True
+  in_drop: 0.2
   optimizer: adamw
   scheduler: True
-  drop_feat: 0.1
+  residual: True
+  norm: layernorm
+  cluster_gcn_batch_size: 1
+  cluster_gcn_num_parts: 50000
+  drop_feat: 0.5
   num_proj_layer: 1
 ogbn-papers100M:
-  lr: 0.001
-  lr_f: 0.05
-  num_hidden: 512
+  lr: 0.002
+  lr_f: 0.001
+  num_hidden: 1024
   num_heads: 4
-  num_layers: 1
-  weight_decay: 0
+  num_layers: 4
+  weight_decay: 0.04
   weight_decay_f: 0
   max_epoch: 20
   max_epoch_f: 1000
-  encoder: gcn
+  batch_size: 512
+  batch_size_f: 512
+  encoder: gat
   activation: prelu
-  in_drop: 0.4
-  attn_drop: 0.1
+  attn_drop: 0.2
   linear_prob: True
+  in_drop: 0.2
   optimizer: adamw
   scheduler: True
-  drop_feat: 0.1
+  residual: True
+  norm: layernorm
+  cluster_gcn_batch_size: 1
+  cluster_gcn_num_parts: 50000
+  drop_feat: 0.5
   num_proj_layer: 1
