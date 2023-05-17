@@ -26,21 +26,21 @@ A coding project that integrates several recent SSL methods applied in GNN.
 
 | sampling  | ogbn-arxiv (Saint) | ogbn-arxiv (ClusterGCN) | ogbn-arxiv (ShallowKhop) | ogbn-arxiv (LocalClustering) | ogbn-arxiv (Random-Init) |
 | :-------: | :----------------: | :---------------------: | :----------------------: | :--------------------------: | :----------------------: |
-| GraphMAE2 |   $70.43\pm0.09$   |     $69.77\pm0.21$      |      $70.96\pm0.10$      |        $71.79\pm0.12$        |      $69.22\pm0.10$      |
-| GraphMAE  |   $70.54\pm0.20$   |     $71.52\pm0.19$      |      $70.77\pm0.35$      |        $70.70\pm0.18$        |      $70.35\pm0.20$      |
-|   Grace   |   $67.65\pm0.16$   |     $65.58\pm0.20$      |      $67.84\pm0.15$      |        $68.59\pm0.12$        |      $58.61\pm0.30$      |
-|  CCA-SSG  |                    |                         |                          |        $67.28\pm0.16$        |      $69.91\pm0.19$      |
-|   BGRL    |                    |                         |                          |        $67.35\pm0.09$        |      $70.32\pm0.21$      |
-|    GGD    |                    |                         |                          |       $70.26\pm 0.13$        |      $70.55\pm0.18$      |
+| GraphMAE2 |   $70.43\pm0.09$   |     $69.77\pm0.21$      |      $70.96\pm0.10$      |        $71.79\pm0.12$        |      $70.43\pm0.21$      |
+| GraphMAE  |   $70.54\pm0.20$   |     $71.52\pm0.19$      |      $70.77\pm0.35$      |        $70.42\pm0.11$        |      $70.43\pm0.21$      |
+|   Grace   |   $67.65\pm0.16$   |     $65.58\pm0.20$      |      $67.84\pm0.15$      |        $71.03\pm0.13$        |      $70.43\pm0.21$      |
+|  CCA-SSG  |                    |                         |                          |        $58.19\pm0.04$        |      $70.43\pm0.21$      |
+|   BGRL    |                    |                         |                          |        $64.64\pm0.02$        |      $70.43\pm0.21$      |
+|    GGD    |                    |                         |                          |        $46.20\pm0.14$        |      $65.86\pm0.01$      |
 
 | sampling  | ogbn-products (LocalClustering) | ogbn-products (Random-Init) |
 | :-------: | :-----------------------------: | :-------------------------: |
 | GraphMAE2 |         $81.02\pm0.07$          |       $75.96\pm0.21$        |
-| GraphMAE  |         $76.71\pm0.28$          |       $75.46\pm0.57$        |
-|   Grace   |         $80.61\pm0.46$          |       $75.22\pm0.28$        |
-|  CCA-SSG  |         $73.56\pm0.29$          |       $74.19\pm0.37$        |
-|   BGRL    |         $67.16\pm0.07$          |       $76.16\pm0.53$        |
-|    GGD    |         $73.41\pm0.31$          |       $72.44\pm0.24$        |
+| GraphMAE  |         $79.68\pm0.09$          |       $75.96\pm0.21$        |
+|   Grace   |         $80.61\pm0.46$          |       $75.96\pm0.21$        |
+|  CCA-SSG  |         $73.56\pm0.29$          |       $75.96\pm0.21$        |
+|   BGRL    |         $67.16\pm0.07$          |       $75.96\pm0.21$        |
+|    GGD    |         $73.41\pm0.31$          |       $76.51\pm0.02$        |
 
 In order to make a fair comparison, all the results in the two tables (ogbn datasets) above are evaluated using Local Clustering sampling.
 

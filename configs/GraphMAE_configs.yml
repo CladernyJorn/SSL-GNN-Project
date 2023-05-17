@@ -88,7 +88,6 @@ ogbn-arxiv:
   linear_prob: True
   in_drop: 0.2
   loss_fn: sce
-  drop_edge_rate: 0.5
   optimizer: adamw
   alpha_l: 6
   scheduler: True
@@ -116,7 +115,6 @@ ogbn-products:
   linear_prob: True
   in_drop: 0.2
   loss_fn: sce
-  drop_edge_rate: 0.5
   optimizer: adamw
   alpha_l: 3
   scheduler: True
@@ -146,7 +144,6 @@ ogbn-papers100M:
   linear_prob: True
   in_drop: 0.2
   loss_fn: sce
-  drop_edge_rate: 0.5
   optimizer: adamw
   alpha_l: 3
   scheduler: True

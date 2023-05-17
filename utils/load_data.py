@@ -5,7 +5,7 @@ import torch.multiprocessing
 from torch.utils.data import DataLoader
 import dgl.dataloading
 from utils.augmentation import mask_edge
-from datasets import load_small_dataset, load_large_dataset,load_amazon_exp_dataset
+from datasets import load_small_dataset, load_large_dataset, load_amazon_exp_dataset
 
 
 # torch.multiprocessing.set_sharing_strategy('file_system')
@@ -13,8 +13,10 @@ from datasets import load_small_dataset, load_large_dataset,load_amazon_exp_data
 def load_dataset(dataset_name):
     if dataset_name in ['cora', 'citeseer', 'pubmed']:
         return load_small_dataset(dataset_name)
-    elif dataset_name=='amazon_experimental_dataset':
-        return load_amazon_exp_dataset()
+    elif dataset_name.startswith('amazon'):
+        return load_amazon_exp_dataset(dataset_name)
+
+
 def load_dataloader(load_type, dataset_name, args):
     # load_type in [pretrain, eval]
     feats, graph, labels, split_idx, ego_graph_nodes = load_large_dataset(dataset_name, args.data_dir,

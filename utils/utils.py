@@ -102,7 +102,12 @@ def process_args(args):
         if args.use_cfg:
             path = args.use_cfg_path
             if path == "":
-                path = "./configs/exp_configs.yml"
+                if args.dataset == 'amazon-app':
+                    path = "./configs/amazon-app_configs.yml"
+                if args.dataset == 'amazon-sftw':
+                    path = "./configs/amazon-sftw_configs.yml"
+                if args.dataset == 'amazon-ggf':
+                    path = "./configs/amazon-ggf_configs.yml"
             with open(path, "r") as f:
                 configs = yaml.load(f, yaml.FullLoader)
             if args.model not in configs:
@@ -112,7 +117,7 @@ def process_args(args):
                 if "lr" in k or "weight_decay" in k or "tau" in k or "lambd" in k:
                     v = float(v)
                 setattr(args, k, v)
-    if args.dataset in ['cora', 'citeseer', 'pubmed','amazon_experimental_dataset']:
+    if args.dataset in ['cora', 'citeseer', 'pubmed'] or args.dataset.startswith('amazon'):
         args.use_sampler = False
         if args.fast_result and len(args.seeds) != 1:
             args.seeds = range(1)  # train & eval only once
@@ -211,8 +216,7 @@ def build_args():
 
     # supervised experimental training
     parser.add_argument("--supervised", action="store_true", default=False)
-    parser.add_argument("--num_class", type=int, default=-1)
-    parser.add_argument("--classification", action="store_true", default=False)
+    parser.add_argument("--classification", action="store_false", default=True)
     parser.add_argument("--regression", action="store_true", default=False)
 
     # just for passing arguments, no need to set/change

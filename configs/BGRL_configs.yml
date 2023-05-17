@@ -74,7 +74,7 @@ ogbn-arxiv:
   weight_decay_f: 1e-4
   max_epoch: 60
   max_epoch_f: 1000
-  batch_size: 512
+  batch_size: 256
   batch_size_f: 512
   num_layers: 4
   encoder: gat
@@ -101,7 +101,7 @@ ogbn-products:
   weight_decay_f: 0
   max_epoch: 20
   max_epoch_f: 1000
-  batch_size: 512
+  batch_size: 256
   batch_size_f: 512
   encoder: gat
   activation: prelu

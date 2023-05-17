@@ -56,11 +56,11 @@ pubmed:
   drop_feat: 0.1
   num_proj_layer: 1
 ogbn-arxiv:
-  lr: 0.0025
+  lr: 0.0005
   lr_f: 0.005
   num_hidden: 1024
   num_heads: 8
-  weight_decay: 0.06
+  weight_decay: 1e-5
   weight_decay_f: 1e-4
   max_epoch: 60
   max_epoch_f: 1000
@@ -72,11 +72,11 @@ ogbn-arxiv:
   attn_drop: 0.1
   linear_prob: True
   in_drop: 0.2
-  optimizer: adamw
+  optimizer: adam
   scheduler: True
   residual: True
   norm: layernorm
-  drop_feat: 0.5
+  drop_feat: 0.1
   num_proj_layer: 1
 ogbn-products:
   lr: 0.002
@@ -88,7 +88,7 @@ ogbn-products:
   weight_decay_f: 0
   max_epoch: 20
   max_epoch_f: 1000
-  batch_size: 512
+  batch_size: 256
   batch_size_f: 512
   encoder: gat
   activation: prelu
